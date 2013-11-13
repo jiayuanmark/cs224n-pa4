@@ -29,6 +29,7 @@ public class WindowModel {
 		// U = SimpleMatrix...
 	}
 
+	
 
 	/**
 	 * Simplest SGD training 
