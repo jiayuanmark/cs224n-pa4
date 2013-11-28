@@ -10,15 +10,14 @@ import org.ejml.simple.*;
 
 public class WindowModel {
 
+	/* Word vectors */
+	protected SimpleMatrix L;
+	
 	/* Weights except for the final layer */
 	protected SimpleMatrix [] W;
-	
-	/* Bias */
-	protected SimpleMatrix [] b;
-	
+		
 	/* Final layer of MAXENT weights */
 	protected SimpleMatrix U;
-	
 	
 	/* Context window size */
 	protected int windowSize;
@@ -47,7 +46,9 @@ public class WindowModel {
 		this.windowSize = windowSize;
 		this.wordSize = 50;
 		this.numOfHiddenLayer = 1;
+		this.W = new SimpleMatrix[numOfHiddenLayer];
 		this.hiddenSize = new int[numOfHiddenLayer];
+		this.hiddenSize[0] = hiddenSize;
 		this.alpha = lr;
 	}
 	
@@ -63,6 +64,7 @@ public class WindowModel {
 		this.windowSize = windowSize;
 		this.wordSize = 50;
 		this.numOfHiddenLayer = hiddenSize.length;
+		this.W = new SimpleMatrix[numOfHiddenLayer];
 		this.hiddenSize = hiddenSize;
 		this.alpha = lr;
 	}
@@ -116,38 +118,36 @@ public class WindowModel {
 	}
 	
 	
-	public double sgdFeedforward(SimpleMatrix window) {
-		SimpleMatrix temp = window;
-		for (int i = 0; i < numOfHiddenLayer; ++i) {
-			temp = tanh(W[i].mult(temp).plus(b[i]));
-		}
-		temp = sigmoid(U.transpose().mult(temp).plus(b[numOfHiddenLayer+1]));
-		return temp.get(0);
-	}
-	
-	
+	/**
+	 * Batch feed-forward function
+	 * 
+	 * @param windows
+	 * @return multiple feed forward function value
+	 */
 	public SimpleMatrix batchFeedforward(SimpleMatrix windows) {
 		SimpleMatrix temp = windows;
+		for (int i = 0; i < numOfHiddenLayer; ++i) {
+			temp = tanh(W[i].mult(MatlabAPI.horzconcat(temp)));
+		}
+		temp = sigmoid(U.transpose().mult(MatlabAPI.horzconcat(temp)));
 		return temp;
 	}
 	
 	
-
 	/**
 	 * Initializes the weights randomly.
 	 */
-	public void initWeights() {
-		// TODO
-		// initialize with bias inside as the last column
-		// W = SimpleMatrix...
-		// U for the score
-		// U = SimpleMatrix...
+	public void initWeights(SimpleMatrix L) {
+		this.L = L;
+		for (int i = 0; i < numOfHiddenLayer; ++i) {
+			
+		}
 	}
 
 	/**
 	 * Simplest SGD training
 	 */
-	public void train(List<Datum> _trainData) {
+	public void train(List<Datum> trainData) {
 		// TODO
 	}
 

@@ -13,22 +13,20 @@ public class NER {
 			return;
 		}
 
-		// this reads in the train and test datasets
+		// Read in the train and test data sets
 		List<Datum> trainData = FeatureFactory.readTrainData(args[0]);
 		List<Datum> testData = FeatureFactory.readTestData(args[1]);
 
-		// read the train and test data
-		// TODO: Implement this function (just reads in vocab and word vectors)
+		// Read in dictionary and word vectors
 		FeatureFactory.initializeVocab("../data/vocab.txt");
-		SimpleMatrix allVecs = FeatureFactory
-				.readWordVectors("../data/wordVectors.txt");
+		SimpleMatrix allVecs = FeatureFactory.readWordVectors("../data/wordVectors.txt");
 
-		// initialize model
+		// Initialize model
 		WindowModel model = new WindowModel(5, 100, 0.001);
-		model.initWeights();
+		model.initWeights(allVecs);
 
-		// TODO: Implement those two functions
-		// model.train(trainData);
-		// model.test(testData);
+		// Train and Test
+		model.train(trainData);
+		model.test(testData);
 	}
 }
