@@ -33,9 +33,7 @@ public class MatlabAPI {
 	 */
 	public static SimpleMatrix horzconcat(SimpleMatrix A) {
 		SimpleMatrix B = new SimpleMatrix(1, A.numCols());
-		for (int i = 0; i < A.numCols(); ++i) {
-			B.set(0, i, 1.0);
-		}
+		B.set(1.0);
 		return B.combine(B.numRows(), 0, A);
 	}
 

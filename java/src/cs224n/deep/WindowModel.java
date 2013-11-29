@@ -9,7 +9,10 @@ import org.ejml.simple.*;
 
 
 public class WindowModel {
-
+	
+	/* Unseen word placeholder */
+	public static final String UNKNOWN = "UUUNKKK";
+	
 	/* Word vectors */
 	protected SimpleMatrix L;
 	
@@ -118,6 +121,80 @@ public class WindowModel {
 	}
 	
 	
+	
+	private List<List<Integer>> makeInputWindows(List<Datum> data) {
+		int radius = windowSize / 2;
+		HashMap<String, Integer> dict = FeatureFactory.getDictionary();
+		
+		List<List<Integer>> ret = new ArrayList<List<Integer>>();
+		
+		for (int i = 0; i < data.size(); ++i) {
+			Datum instance = data.get(i);
+			LinkedList<String> window = new LinkedList<String>();
+			window.add(instance.word);
+			
+			// Expand window
+			boolean left = instance.word.equals("<s>");
+			boolean right = instance.word.equals("</s>");
+			
+			// Expand left
+			int ll = i-1;
+			for (int r = 0; r < radius; ++r) {
+				if (left) window.addFirst("<s>");
+				else if (ll < 0) window.addFirst("<s>");
+				else {
+					window.addFirst(data.get(ll).word);
+					left = data.get(ll).word.equals("<s>");
+				}
+				--ll;
+			}
+			
+			// Expand right
+			int rr = i+1;
+			for (int r = 0; r < radius; ++r) {
+				if (right) window.addLast("</s>");
+				else if (rr >= data.size()) window.addLast("</s>");
+				else {
+					window.addLast(data.get(rr).word);
+					right = data.get(rr).word.equals("</s>");
+				}
+				++rr;
+			}
+			
+			// String to index
+			ArrayList<Integer> windowIndices = new ArrayList<Integer>();
+			for (String word : window) {
+				if (dict.containsKey(word)) windowIndices.add(dict.get(word));
+				else windowIndices.add(dict.get(UNKNOWN));
+			}
+			ret.add(windowIndices);
+		}
+		return ret;
+	}
+	
+	
+	private List<Double> makeLabels(List<Datum> data) {
+		List<Double> labels = new ArrayList<Double>();
+		for (int i = 0; i < data.size(); ++i) {
+			if (data.get(i).label.equals("PERSON")) {
+				labels.add(1.0);
+			}
+			else labels.add(0.0);
+		}
+		return labels;
+	}
+	
+	
+	
+	private SimpleMatrix makeInputVector(List<Integer> win) {
+		SimpleMatrix vec = new SimpleMatrix(wordSize * windowSize, 1);
+		for (int w = 0; w < win.size(); ++w) {
+			vec.insertIntoThis(w * wordSize, 0, L.extractVector(false, win.get(w)));
+		}
+		return vec;
+	}
+	
+	
 	/**
 	 * Batch feed-forward function
 	 * 
@@ -129,26 +206,236 @@ public class WindowModel {
 		for (int i = 0; i < numOfHiddenLayer; ++i) {
 			temp = tanh(W[i].mult(MatlabAPI.horzconcat(temp)));
 		}
-		temp = sigmoid(U.transpose().mult(MatlabAPI.horzconcat(temp)));
+		temp = sigmoid(U.mult(MatlabAPI.horzconcat(temp)));
 		return temp;
 	}
+	
+	/**
+	 * Cost function
+	 * 
+	 * @param X
+	 * @param L 
+	 * @return cost function value
+	 */
+	public double costFunction(SimpleMatrix X, SimpleMatrix L) {
+		SimpleMatrix h = batchFeedforward(X);
+		int M = X.numCols();
+		double val = 0.0;
+		for (int i = 0; i < M; ++i) {
+			val -= ( L.get(0, i) * Math.log(h.get(0, i)) + (1 - L.get(0, i)) * Math.log(1 - h.get(0, i)));
+		}
+		return val / M;
+	}
+	
+	
 	
 	
 	/**
 	 * Initializes the weights randomly.
 	 */
-	public void initWeights(SimpleMatrix L) {
-		this.L = L;
+	public void initWeights() {
+		Random rand = new Random();
+		L = FeatureFactory.getWordVectors();
+		int fanIn = windowSize * wordSize;
+		double epsilon;
+		
 		for (int i = 0; i < numOfHiddenLayer; ++i) {
+			// Initialize hidden weights to random numbers
+			epsilon = Math.sqrt(6.0) / Math.sqrt(hiddenSize[i] + fanIn); 
+			W[i] = SimpleMatrix.random(hiddenSize[i], fanIn+1, -epsilon, epsilon, rand);
 			
+			// Initialize bias terms to zeros
+			double [] zeros = new double[hiddenSize[i]];
+			Arrays.fill(zeros, 0.0);
+			W[i].setColumn(0, 0, zeros);
+			
+			// Record next fan-out
+			fanIn = hiddenSize[i];
 		}
+		
+		// Final layer
+		epsilon = Math.sqrt(6.0) / Math.sqrt(1+fanIn);
+		U = SimpleMatrix.random(1, fanIn+1, -epsilon, epsilon, rand);
+		U.set(0, 0.0);
 	}
+	
+	
+	/**
+	 * Backpropagation gradient
+	 * 
+	 * 
+	 * 
+	 */
+	protected SimpleMatrix[] backpropGrad(SimpleMatrix batch, SimpleMatrix label) {
+		SimpleMatrix [] a = new SimpleMatrix[numOfHiddenLayer+2];
+		SimpleMatrix [] z = new SimpleMatrix[numOfHiddenLayer+2];
+		
+		// Forward propagation
+		for (int i = 0; i < numOfHiddenLayer+2; ++i) {
+			// Input layer
+			if (i == 0) {
+				z[i] = batch;
+				a[i] = MatlabAPI.horzconcat(z[i]);
+			}
+			// Output layer
+			else if (i == numOfHiddenLayer+1) {
+				z[i] = U.mult(a[i-1]);
+				a[i] = sigmoid(z[i]);
+			}
+			// Middle layer
+			else {
+				z[i] = W[i-1].mult(a[i-1]);
+				a[i] = MatlabAPI.horzconcat(tanh(z[i]));
+			}
+		}
+		
+		// Initialize a list of gradient matrices
+		SimpleMatrix[] grad = new SimpleMatrix[numOfHiddenLayer+2];
+		for (int i = 0; i < grad.length; ++i) {
+			// Gradient for L
+			if (i == 0) {
+				grad[i] = new SimpleMatrix(batch.numRows(), 1);
+			}
+			// Gradient for U
+			else if (i == numOfHiddenLayer+1) {
+				grad[i] = new SimpleMatrix(U.numRows(), U.numCols());
+			}
+			// Gradient for W
+			else {
+				grad[i] = new SimpleMatrix(W[i-1].numRows(), W[i-1].numCols());
+			}
+		}
+		
+		int M = batch.numCols();
+		SimpleMatrix Error = a[numOfHiddenLayer+1].minus(label);
+		
+		// For each instance in this batch
+		for (int m = 0; m < M; ++m) {
+			// Backward propagation
+			SimpleMatrix Delta = Error.extractVector(false, m);
+			
+			for (int i = numOfHiddenLayer+1; i >= 1; --i) {
+				grad[i] = grad[i].plus(Delta.mult(a[i-1].extractVector(false, m).transpose()));
+				
+				// Output layer
+				if (i == numOfHiddenLayer+1) {
+					Delta = U.transpose().mult(Delta);
+					Delta = Delta.extractMatrix(1, Delta.numRows(), 0, Delta.numCols());
+					Delta = Delta.elementMult(tanhDerivative(z[i-1].extractVector(false, m)));
+				}
+				else if (i == 1) {
+					Delta = W[i-1].transpose().mult(Delta);
+					Delta = Delta.extractMatrix(1, Delta.numRows(), 0, Delta.numCols());
+				}
+				// Hidden layer
+				else {
+					Delta = W[i-1].transpose().mult(Delta);
+					Delta = Delta.extractMatrix(1, Delta.numRows(), 0, Delta.numCols());
+					Delta = Delta.elementMult(tanhDerivative(z[i-1].extractVector(false, m)));
+				}
+			}
+			// Input layer
+			grad[0] = grad[0].plus(Delta);
+		}
+		return grad;
+	}
+	
+	
+	/**
+	 * Numerical gradient
+	 * 
+	 * 
+	 */
+	protected SimpleMatrix[] numericalGrad(SimpleMatrix batch, SimpleMatrix label) {
+		double EPS = 1e-4;
+		
+		// Compute numerical gradient
+		SimpleMatrix[] grad = new SimpleMatrix[numOfHiddenLayer+2];
+		for (int i = 0; i < grad.length; ++i) {
+			SimpleMatrix M = null;
+			
+			// Gradient for L
+			if (i == 0) {
+				grad[i] = new SimpleMatrix(batch.numRows(), 1);
+				for (int r = 0; r < batch.numRows(); ++r) {
+					SimpleMatrix perturb = new SimpleMatrix(batch.numRows(), 1);
+					perturb.set(r, 0, EPS);
+					SimpleMatrix right = batch.plus(MatlabAPI.repmat(perturb, 1, batch.numCols()));
+					SimpleMatrix left = batch.minus(MatlabAPI.repmat(perturb, 1, batch.numCols()));
+					double rr = costFunction(right, label), ll = costFunction(left, label);
+					grad[i].set(r, 0, (rr-ll)/(2*EPS));
+				}
+				continue;
+			}
+			// Gradient for U
+			else if (i == numOfHiddenLayer+1) {
+				M = U;
+			}
+			// Gradient for W
+			else {
+				M = W[i-1];
+			}
+			
+			grad[i] = new SimpleMatrix(M.numRows(), M.numCols());
+			for (int r = 0; r < M.numRows(); ++r) {
+				for (int c = 0; c < M.numCols(); ++c) {
+					double mid = M.get(r, c);
+					M.set(r, c, mid+EPS);
+					double right = costFunction(batch, label);
+					M.set(r, c, mid-EPS);
+					double left = costFunction(batch, label);
+					M.set(r, c, mid);
+					grad[i].set(r, c, (right - left) / (2 * EPS)); 
+				}
+			}
+		}
+		return grad;
+	}
+	
+	/**
+	 * Check if two gradients are the same
+	 * 
+	 * 
+	 * @param grad1
+	 * @param grad2
+	 */
+	void checkGradient(SimpleMatrix [] grad1, SimpleMatrix [] grad2) {
+		if (grad1.length != grad2.length) {
+			System.err.println("Gradient length not matched");
+			return;
+		}
+		
+		boolean flag = true;
+		for (int i = 0; i < grad1.length; ++i) {
+			double diff = grad1[i].minus(grad2[i]).elementMaxAbs();
+			if (diff >= 1e-8) {
+				System.err.println("Check gradient failed at Level: " + i + "\tDiff: " + diff);
+				flag = false;
+			}
+		}
+		
+		if (flag) System.err.println("Success!");
+	}
+	
 
 	/**
 	 * Simplest SGD training
 	 */
 	public void train(List<Datum> trainData) {
-		// TODO
+		
+		List<List<Integer>> instances = makeInputWindows(trainData);
+		List<Double> labels = makeLabels(trainData);
+		
+		for (int i = 0; i < 10; ++i) {
+			SimpleMatrix input = makeInputVector(instances.get(i));
+			SimpleMatrix label = new SimpleMatrix(1, 1);
+			label.set(labels.get(i));
+			SimpleMatrix [] G = backpropGrad(input, label);
+			SimpleMatrix [] NG = numericalGrad(input, label);
+			
+			checkGradient(G, NG);
+		}
+		
 	}
 
 	public void test(List<Datum> testData) {

@@ -12,8 +12,28 @@ public class FeatureFactory {
 	private FeatureFactory() {
 
 	}
-
-	static List<Datum> trainData;
+	
+	
+	/** Public singleton pattern interfaces **/
+	
+	public static List<Datum> getTrainData() {
+		return trainData;
+	}
+	
+	public static List<Datum> getTestData() {
+		return testData;
+	}
+	
+	public static SimpleMatrix getWordVectors() {
+		return allVecs;
+	}
+	
+	public static HashMap<String, Integer> getDictionary() {
+		return wordToNum;
+	}
+	
+	
+	private static List<Datum> trainData;
 
 	/** Do not modify this method **/
 	public static List<Datum> readTrainData(String filename) throws IOException {
@@ -23,7 +43,7 @@ public class FeatureFactory {
 		return trainData;
 	}
 
-	static List<Datum> testData;
+	private static List<Datum> testData;
 
 	/** Do not modify this method **/
 	public static List<Datum> readTestData(String filename) throws IOException {
@@ -58,7 +78,7 @@ public class FeatureFactory {
 	 * Access it directly in WindowModel
 	 * 
 	 */
-	static SimpleMatrix allVecs;
+	private static SimpleMatrix allVecs;
 
 	public static SimpleMatrix readWordVectors(String vecFilename)
 			throws IOException {
@@ -102,8 +122,8 @@ public class FeatureFactory {
 	 * Word to number lookups, just access them directly in WindowModel.
 	 * 
 	 */
-	public static HashMap<String, Integer> wordToNum = new HashMap<String, Integer>();
-	public static HashMap<Integer, String> numToWord = new HashMap<Integer, String>();
+	private static HashMap<String, Integer> wordToNum = new HashMap<String, Integer>();
+	private static HashMap<Integer, String> numToWord = new HashMap<Integer, String>();
 
 	public static HashMap<String, Integer> initializeVocab(String vocabFilename)
 			throws IOException {

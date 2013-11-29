@@ -3,7 +3,6 @@ package cs224n.deep;
 import java.util.*;
 import java.io.*;
 
-import org.ejml.simple.SimpleMatrix;
 
 public class NER {
 
@@ -18,15 +17,20 @@ public class NER {
 		List<Datum> testData = FeatureFactory.readTestData(args[1]);
 
 		// Read in dictionary and word vectors
-		FeatureFactory.initializeVocab("../data/vocab.txt");
-		SimpleMatrix allVecs = FeatureFactory.readWordVectors("../data/wordVectors.txt");
+		FeatureFactory.initializeVocab("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/data/vocab.txt");
+		FeatureFactory.readWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/data/wordVectors.txt");
 
 		// Initialize model
 		WindowModel model = new WindowModel(5, 100, 0.001);
-		model.initWeights(allVecs);
+		model.initWeights();
 
+		//
+		System.out.println(FeatureFactory.getWordVectors().numRows() + " " + FeatureFactory.getWordVectors().numCols());
+		
 		// Train and Test
+		System.out.println("Start training...");
 		model.train(trainData);
-		model.test(testData);
+		System.out.println("Finish training...");
+		//model.test(testData);
 	}
 }
