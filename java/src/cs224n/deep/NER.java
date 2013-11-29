@@ -31,6 +31,6 @@ public class NER {
 		System.out.println("Start training...");
 		model.train(trainData);
 		System.out.println("Finish training...");
-		//model.test(testData);
+		model.test(testData);
 	}
 }

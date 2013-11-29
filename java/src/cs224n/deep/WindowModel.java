@@ -1,11 +1,14 @@
 package cs224n.deep;
 
-import java.lang.*;
-import java.util.*;
-import java.text.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.Random;
 
-import org.ejml.data.*;
-import org.ejml.simple.*;
+import org.ejml.simple.SimpleMatrix;
 
 
 public class WindowModel {
@@ -37,6 +40,8 @@ public class WindowModel {
 	/* Learning rate */
 	protected double alpha;
 	
+	/* Regularization constant */
+	protected double C = 0.0001;
 	
 	/**
 	 * Shallow architecture constructor
@@ -90,19 +95,6 @@ public class WindowModel {
 		for (int i = 0; i < R; ++i) {
 			for (int j = 0; j < C; ++j) {
 				ret.set(i, j, Math.tanh(M.get(i, j)));
-			}
-		}
-		return ret;
-	}
-	
-	
-	private static SimpleMatrix sigmoidDerivative(SimpleMatrix M) {
-		int R = M.numRows(), C = M.numCols();
-		SimpleMatrix ret = new SimpleMatrix(R, C);
-		for (int i = 0; i < R; ++i) {
-			for (int j = 0; j < C; ++j) {
-				double val = Math.exp(-M.get(i, j));
-				ret.set(i, j, val / ((1+val)*(1+val)));
 			}
 		}
 		return ret;
@@ -185,7 +177,6 @@ public class WindowModel {
 	}
 	
 	
-	
 	private SimpleMatrix makeInputVector(List<Integer> win) {
 		SimpleMatrix vec = new SimpleMatrix(wordSize * windowSize, 1);
 		for (int w = 0; w < win.size(); ++w) {
@@ -220,11 +211,24 @@ public class WindowModel {
 	public double costFunction(SimpleMatrix X, SimpleMatrix L) {
 		SimpleMatrix h = batchFeedforward(X);
 		int M = X.numCols();
+		
 		double val = 0.0;
+		// Log likelihood score
 		for (int i = 0; i < M; ++i) {
 			val -= ( L.get(0, i) * Math.log(h.get(0, i)) + (1 - L.get(0, i)) * Math.log(1 - h.get(0, i)));
 		}
-		return val / M;
+		
+		val /= M;
+		
+		// Regularization without bias
+		for (int i = 0; i < W.length; ++i) {
+			SimpleMatrix nobiasW = W[i].extractMatrix(0, W[i].numRows(), 1, W[i].numCols());
+			val += C / (2 * M) * nobiasW.elementMult(nobiasW).elementSum();
+		}
+		SimpleMatrix nobiasU = U.extractMatrix(0, U.numRows(), 1, U.numCols());
+		val += C / (2 * M) * nobiasU.elementMult(nobiasU).elementSum();
+		
+		return val;
 	}
 	
 	
@@ -337,6 +341,31 @@ public class WindowModel {
 			// Input layer
 			grad[0] = grad[0].plus(Delta);
 		}
+		
+		// Average and add regularization term
+		for (int i = 0; i < grad.length; ++i) {
+			// Gradient for L
+			if (i == 0) {
+				grad[i] = grad[i].divide(M);
+			}
+			// Gradient for U
+			else if (i == numOfHiddenLayer+1) {
+				SimpleMatrix nobiasU = U.copy();
+				double [] arr = new double[nobiasU.numRows()];
+				Arrays.fill(arr, 0.0);
+				nobiasU.setColumn(0, 0, arr);
+				grad[i] = grad[i].divide(M).plus(nobiasU.scale(C / M));
+			}
+			// Gradient for W
+			else {
+				SimpleMatrix nobiasW = W[i-1].copy();
+				double [] arr = new double[nobiasW.numRows()];
+				Arrays.fill(arr, 0.0);
+				nobiasW.setColumn(0, 0, arr);
+				grad[i] = grad[i].divide(M).plus(nobiasW.scale(C / M));
+			}
+		}
+		
 		return grad;
 	}
 	
@@ -399,7 +428,7 @@ public class WindowModel {
 	 * @param grad1
 	 * @param grad2
 	 */
-	void checkGradient(SimpleMatrix [] grad1, SimpleMatrix [] grad2) {
+	public void checkGradient(SimpleMatrix [] grad1, SimpleMatrix [] grad2) {
 		if (grad1.length != grad2.length) {
 			System.err.println("Gradient length not matched");
 			return;
@@ -419,27 +448,103 @@ public class WindowModel {
 	
 
 	/**
-	 * Simplest SGD training
+	 * Stochastic gradient descent training
 	 */
 	public void train(List<Datum> trainData) {
 		
-		List<List<Integer>> instances = makeInputWindows(trainData);
-		List<Double> labels = makeLabels(trainData);
+		List<List<Integer>> TrainX = makeInputWindows(trainData);
+		List<Double> TrainY = makeLabels(trainData);
+		int numTrain = trainData.size();
 		
-		for (int i = 0; i < 10; ++i) {
-			SimpleMatrix input = makeInputVector(instances.get(i));
+		// Check gradient
+		/*for (int i = 0; i < 10; ++i) {
+			SimpleMatrix input = makeInputVector(TrainX.get(i));
 			SimpleMatrix label = new SimpleMatrix(1, 1);
-			label.set(labels.get(i));
+			label.set(TrainY.get(i));	
 			SimpleMatrix [] G = backpropGrad(input, label);
 			SimpleMatrix [] NG = numericalGrad(input, label);
-			
 			checkGradient(G, NG);
-		}
+		}*/
 		
+		// SGD
+		for (int epoch = 0; epoch < 2; ++epoch) {
+			
+			System.out.println("Epoch " + epoch);
+			
+			// Randomly shuffle examples
+			long seed = System.nanoTime();
+			Collections.shuffle(TrainX, new Random(seed));
+			Collections.shuffle(TrainY, new Random(seed));
+			
+			// For each training example
+			for (int i = 0; i < numTrain; ++i) {
+					
+				// Make input
+				SimpleMatrix input = makeInputVector(TrainX.get(i));
+				SimpleMatrix label = new SimpleMatrix(1, 1);
+				label.set(TrainY.get(i));
+				
+				
+				if (i % 10000 == 0) {
+					System.out.println("\tProcessing " + i + "/" + numTrain + " examples.");
+					System.out.println("\tObjective function value: " + costFunction(input, label));
+				}
+				
+				
+				// Compute Gradient
+				SimpleMatrix [] G = backpropGrad(input, label);
+				
+				
+				// Update W
+				for (int ll = 1; ll <= numOfHiddenLayer; ++ll) {
+					W[ll-1] = W[ll-1].minus(G[ll].scale(alpha));
+				}
+				
+				// Update U
+				U = U.minus(G[numOfHiddenLayer+1].scale(alpha));
+				
+				// Update L
+				input = input.minus(G[0].scale(alpha));
+				List<Integer> wordIdx = TrainX.get(i);
+				for (int idx = 0; idx < wordIdx.size(); ++idx) {
+					L.insertIntoThis(0, wordIdx.get(idx), input.extractMatrix(idx * wordSize, (idx+1) * wordSize, 0, 1));
+				}		
+			}
+		}
 	}
 
+	
+	/**
+	 * 
+	 * @param testData
+	 */
 	public void test(List<Datum> testData) {
-		// TODO
+		List<List<Integer>> TestX = makeInputWindows(testData);
+		List<Double> TestY = makeLabels(testData);
+		int numTest = testData.size();
+		
+		int truePositive = 0, falsePositive = 0, falseNegative = 0;
+		for (int i = 0; i < numTest; ++i) {
+			SimpleMatrix input = makeInputVector(TestX.get(i));
+			SimpleMatrix response = batchFeedforward(input);
+			
+			System.out.println(response.get(0));
+			
+			int result = 0;
+			if (response.get(0) > 0.5) result = 1;
+			int answer = TestY.get(i).compareTo(1.0) == 0 ? 1 : 0;
+			
+			if (result == answer && answer == 1) {
+				++truePositive;
+			} else if (result != answer && result == 1) {
+				++falsePositive;
+			} else if (result != answer && answer == 1) {
+				++falseNegative;
+			}
+		}
+		
+		System.out.println("Precision: " + (double)truePositive / ((double)(truePositive+falsePositive)));
+		System.out.println("Recall: " + (double)truePositive / ((double)(truePositive+falseNegative)));
 	}
 
 }
