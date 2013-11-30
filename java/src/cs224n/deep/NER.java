@@ -21,8 +21,7 @@ public class NER {
 		FeatureFactory.readWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/data/wordVectors.txt");
 
 		// Initialize model
-		int [] hiddenLayer = {100, 50};
-		WindowModel model = new WindowModel(5, hiddenLayer, 0.001);
+		WindowModel model = new WindowModel(5, 100, 0.001);
 		model.initWeights();
 
 		//
@@ -32,6 +31,9 @@ public class NER {
 		System.out.println("Start training...");
 		model.train(trainData);
 		System.out.println("Finish training...");
-		model.test(testData);
+		//model.test(testData);
+		
+		// Dump word vectors
+		//model.dumpWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/tSNE/trainedVectors.txt");
 	}
 }

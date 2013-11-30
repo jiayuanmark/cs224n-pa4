@@ -1,5 +1,8 @@
 package cs224n.deep;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
@@ -41,7 +44,7 @@ public class WindowModel {
 	protected double alpha;
 	
 	/* Regularization constant */
-	protected double C = 0.000025;
+	protected double C = 0.0001;
 	
 	/**
 	 * Shallow architecture constructor
@@ -457,16 +460,16 @@ public class WindowModel {
 		int numTrain = trainData.size();
 		
 		// Check gradient
-		/*for (int i = 0; i < 10; ++i) {
+		for (int i = 0; i < 10; ++i) {
 			SimpleMatrix input = makeInputVector(TrainX.get(i));
 			SimpleMatrix label = new SimpleMatrix(1, 1);
 			label.set(TrainY.get(i));	
 			SimpleMatrix [] G = backpropGrad(input, label);
 			SimpleMatrix [] NG = numericalGrad(input, label);
 			checkGradient(G, NG);
-		}*/
+		}
 		
-		// SGD
+		/*// SGD
 		for (int epoch = 0; epoch < 2; ++epoch) {
 			
 			System.out.println("Epoch " + epoch);
@@ -510,7 +513,7 @@ public class WindowModel {
 					L.insertIntoThis(0, wordIdx.get(idx), input.extractMatrix(idx * wordSize, (idx+1) * wordSize, 0, 1));
 				}		
 			}
-		}
+		}*/
 	}
 
 	
@@ -547,4 +550,26 @@ public class WindowModel {
 		System.out.println("Recall: " + (double)truePositive / ((double)(truePositive+falseNegative)));
 	}
 
+	
+	/**
+	 * Dump the word vectors matrix L into a file.
+	 * Each row is a word vector.
+	 * 
+	 * @param filename
+	 * @throws IOException 
+	 */
+	public void dumpWordVectors(String filename) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
+		int numOfWord = L.numCols();
+		for (int i = 0; i < numOfWord; ++i) {
+			for (int j = 0; j < wordSize; ++j) {
+				writer.write(Double.toString(L.get(j, i)));
+				if (j != wordSize - 1) writer.write(" ");
+			}
+			writer.write("\n");
+		}
+		writer.close();
+	}
+	
+	
 }
