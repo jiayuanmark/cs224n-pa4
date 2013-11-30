@@ -41,7 +41,7 @@ public class WindowModel {
 	protected double alpha;
 	
 	/* Regularization constant */
-	protected double C = 0.0001;
+	protected double C = 0.000025;
 	
 	/**
 	 * Shallow architecture constructor
