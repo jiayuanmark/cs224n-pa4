@@ -31,9 +31,9 @@ public class NER {
 		System.out.println("Start training...");
 		model.train(trainData);
 		System.out.println("Finish training...");
-		//model.test(testData);
+		model.test(testData);
 		
 		// Dump word vectors
-		//model.dumpWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/tSNE/trainedVectors.txt");
+		model.dumpWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/tSNE/trainedVectors.txt");
 	}
 }

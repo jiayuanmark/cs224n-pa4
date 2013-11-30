@@ -460,16 +460,17 @@ public class WindowModel {
 		int numTrain = trainData.size();
 		
 		// Check gradient
-		for (int i = 0; i < 10; ++i) {
+		/*for (int i = 0; i < 10; ++i) {
 			SimpleMatrix input = makeInputVector(TrainX.get(i));
 			SimpleMatrix label = new SimpleMatrix(1, 1);
 			label.set(TrainY.get(i));	
 			SimpleMatrix [] G = backpropGrad(input, label);
 			SimpleMatrix [] NG = numericalGrad(input, label);
 			checkGradient(G, NG);
-		}
+		}*/
 		
-		/*// SGD
+		
+		// SGD
 		for (int epoch = 0; epoch < 2; ++epoch) {
 			
 			System.out.println("Epoch " + epoch);
@@ -513,7 +514,7 @@ public class WindowModel {
 					L.insertIntoThis(0, wordIdx.get(idx), input.extractMatrix(idx * wordSize, (idx+1) * wordSize, 0, 1));
 				}		
 			}
-		}*/
+		}
 	}
 
 	
