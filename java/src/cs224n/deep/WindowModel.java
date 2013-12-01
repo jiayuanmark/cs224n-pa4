@@ -44,7 +44,7 @@ public class WindowModel {
 	protected double alpha;
 	
 	/* Regularization constant */
-	protected double C = 0.0001;
+	protected double C = 0.0;
 	
 	/**
 	 * Shallow architecture constructor
@@ -515,28 +515,16 @@ public class WindowModel {
 				}		
 			}
 		}
-	}
-
-	
-	/**
-	 * 
-	 * @param testData
-	 */
-	public void test(List<Datum> testData) {
-		List<List<Integer>> TestX = makeInputWindows(testData);
-		List<Double> TestY = makeLabels(testData);
-		int numTest = testData.size();
 		
+		// Evaluate training statistics
 		int truePositive = 0, falsePositive = 0, falseNegative = 0;
-		for (int i = 0; i < numTest; ++i) {
-			SimpleMatrix input = makeInputVector(TestX.get(i));
+		for (int i = 0; i < numTrain; ++i) {
+			SimpleMatrix input = makeInputVector(TrainX.get(i));
 			SimpleMatrix response = batchFeedforward(input);
-			
-			System.out.println(response.get(0));
 			
 			int result = 0;
 			if (response.get(0) > 0.5) result = 1;
-			int answer = TestY.get(i).compareTo(1.0) == 0 ? 1 : 0;
+			int answer = TrainY.get(i).compareTo(1.0) == 0 ? 1 : 0;
 			
 			if (result == answer && answer == 1) {
 				++truePositive;
@@ -547,8 +535,43 @@ public class WindowModel {
 			}
 		}
 		
+		System.out.println("-------------------------------");
+		System.out.println("Training data size: " + numTrain);
+		System.out.println("True Positive: " + truePositive);
+		System.out.println("False Positive: " + falsePositive);
+		System.out.println("False Negative: " + falseNegative);
 		System.out.println("Precision: " + (double)truePositive / ((double)(truePositive+falsePositive)));
 		System.out.println("Recall: " + (double)truePositive / ((double)(truePositive+falseNegative)));
+		System.out.println("-------------------------------");
+	}
+
+	
+	/**
+	 * Run test on dev/test set
+	 * 
+	 * @param testData
+	 */
+	public void test(List<Datum> testData) {
+		List<List<Integer>> TestX = makeInputWindows(testData);
+		List<Double> TestY = makeLabels(testData);
+		int numTest = testData.size();
+		
+		int correct = 0;
+		for (int i = 0; i < numTest; ++i) {
+			SimpleMatrix input = makeInputVector(TestX.get(i));
+			SimpleMatrix response = batchFeedforward(input);
+			int result = 0;
+			if (response.get(0) > 0.5) result = 1;
+			int answer = TestY.get(i).compareTo(1.0) == 0 ? 1 : 0;
+			if (result == answer) {
+				++correct;
+			}
+		}
+		
+		System.out.println("--------------------------");
+		System.out.println("Test data size: " + numTest);
+		System.out.println("Accuracy: " + (double)correct / (double)numTest);
+		System.out.println("--------------------------");
 	}
 
 	
