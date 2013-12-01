@@ -21,11 +21,13 @@ public class NER {
 		FeatureFactory.readWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/data/wordVectors.txt");
 
 		// Initialize model
-		WindowModel model = new WindowModel(5, 100, 0.0001);
+		WindowModel model = new WindowModel(5, 100, 0.001);
 		model.initWeights();
 
-		//
+		// Check point
 		System.out.println(FeatureFactory.getWordVectors().numRows() + " " + FeatureFactory.getWordVectors().numCols());
+		System.out.println("Train examples: " + trainData.size());
+		System.out.println("Test examples: " + testData.size());
 		
 		// Train and Test
 		System.out.println("Start training...");

@@ -492,6 +492,7 @@ public class WindowModel {
 		List<Double> TrainY = makeLabels(trainData);
 		int numTrain = trainData.size();
 		
+		
 		// Check gradient
 		/*for (int i = 0; i < 10; ++i) {
 			SimpleMatrix input = makeInputVector(TrainX.get(i));
@@ -505,7 +506,6 @@ public class WindowModel {
 		
 		// SGD
 		for (int epoch = 0; epoch < 2; ++epoch) {
-			
 			System.out.println("Epoch " + epoch);
 			
 			// Randomly shuffle examples
@@ -521,16 +521,13 @@ public class WindowModel {
 				SimpleMatrix label = new SimpleMatrix(1, 1);
 				label.set(TrainY.get(i));
 				
-				
 				if (i % 10000 == 0) {
 					System.out.println("\tProcessing " + i + "/" + numTrain + " examples.");
 					System.out.println("\tObjective function value: " + costFunction(input, label));
 				}
 				
-				
 				// Compute Gradient
 				SimpleMatrix [] G = backpropGrad(input, label);
-				
 				
 				// Update W
 				for (int ll = 1; ll <= numOfHiddenLayer; ++ll) {
@@ -590,7 +587,5 @@ public class WindowModel {
 			writer.write("\n");
 		}
 		writer.close();
-	}
-	
-	
+	}	
 }
