@@ -21,7 +21,7 @@ public class NER {
 		FeatureFactory.readWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/data/wordVectors.txt");
 
 		// Initialize model
-		WindowModel model = new WindowModel(5, 150, 0.0001);
+		WindowModel model = new WindowModel(5, 100, 0.0001);
 		model.initWeights();
 
 		//

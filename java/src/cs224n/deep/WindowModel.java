@@ -44,7 +44,7 @@ public class WindowModel {
 	protected double alpha;
 	
 	/* Regularization constant */
-	protected double C = 0.0;
+	protected double C = 0.0001;
 	
 	/**
 	 * Shallow architecture constructor
@@ -189,6 +189,39 @@ public class WindowModel {
 	}
 	
 	
+	private void evaluateStatistics(List<List<Integer>> Data, List<Double> Label) {
+		int numData = Data.size();
+		int truePositive = 0, falsePositive = 0, falseNegative = 0, trueNegative = 0;
+		for (int i = 0; i < numData; ++i) {
+			SimpleMatrix input = makeInputVector(Data.get(i));
+			SimpleMatrix response = batchFeedforward(input);
+			
+			int result = 0;
+			if (response.get(0) > 0.5) result = 1;
+			int answer = Label.get(i).compareTo(1.0) == 0 ? 1 : 0;
+			
+			if (result == answer && answer == 1) {
+				++truePositive;
+			} else if (result == answer && result == 0) {
+				++trueNegative;
+			} else if (result != answer && result == 1) {
+				++falsePositive;
+			} else if (result != answer && answer == 1) {
+				++falseNegative;
+			}
+		}
+		
+		System.out.println("-------------------------------");
+		System.out.println("Dataset size: " + numData);
+		System.out.println("PERSON Precision: " + (double)truePositive / ((double)(truePositive+falsePositive)));
+		System.out.println("PERSON Recall: " + (double)truePositive / ((double)(truePositive+falseNegative)));
+		System.out.println("NON-PERSON Precision: " + (double)trueNegative / ((double)(trueNegative+falseNegative)));
+		System.out.println("NON-PERSON Recall: " + (double)trueNegative / ((double)(trueNegative+falsePositive)));
+		System.out.println("-------------------------------");
+	}
+	
+	
+	
 	/**
 	 * Batch feed-forward function
 	 * 
@@ -205,7 +238,7 @@ public class WindowModel {
 	}
 	
 	/**
-	 * Cost function
+	 * Regularized cost function
 	 * 
 	 * @param X
 	 * @param L 
@@ -216,7 +249,7 @@ public class WindowModel {
 		int M = X.numCols();
 		
 		double val = 0.0;
-		// Log likelihood score
+		// Binary cross entropy
 		for (int i = 0; i < M; ++i) {
 			val -= ( L.get(0, i) * Math.log(h.get(0, i)) + (1 - L.get(0, i)) * Math.log(1 - h.get(0, i)));
 		}
@@ -517,32 +550,9 @@ public class WindowModel {
 		}
 		
 		// Evaluate training statistics
-		int truePositive = 0, falsePositive = 0, falseNegative = 0;
-		for (int i = 0; i < numTrain; ++i) {
-			SimpleMatrix input = makeInputVector(TrainX.get(i));
-			SimpleMatrix response = batchFeedforward(input);
-			
-			int result = 0;
-			if (response.get(0) > 0.5) result = 1;
-			int answer = TrainY.get(i).compareTo(1.0) == 0 ? 1 : 0;
-			
-			if (result == answer && answer == 1) {
-				++truePositive;
-			} else if (result != answer && result == 1) {
-				++falsePositive;
-			} else if (result != answer && answer == 1) {
-				++falseNegative;
-			}
-		}
-		
-		System.out.println("-------------------------------");
-		System.out.println("Training data size: " + numTrain);
-		System.out.println("True Positive: " + truePositive);
-		System.out.println("False Positive: " + falsePositive);
-		System.out.println("False Negative: " + falseNegative);
-		System.out.println("Precision: " + (double)truePositive / ((double)(truePositive+falsePositive)));
-		System.out.println("Recall: " + (double)truePositive / ((double)(truePositive+falseNegative)));
-		System.out.println("-------------------------------");
+		System.out.println("Training statistics");
+		evaluateStatistics(TrainX, TrainY);
+		System.out.println();
 	}
 
 	
@@ -554,24 +564,11 @@ public class WindowModel {
 	public void test(List<Datum> testData) {
 		List<List<Integer>> TestX = makeInputWindows(testData);
 		List<Double> TestY = makeLabels(testData);
-		int numTest = testData.size();
 		
-		int correct = 0;
-		for (int i = 0; i < numTest; ++i) {
-			SimpleMatrix input = makeInputVector(TestX.get(i));
-			SimpleMatrix response = batchFeedforward(input);
-			int result = 0;
-			if (response.get(0) > 0.5) result = 1;
-			int answer = TestY.get(i).compareTo(1.0) == 0 ? 1 : 0;
-			if (result == answer) {
-				++correct;
-			}
-		}
-		
-		System.out.println("--------------------------");
-		System.out.println("Test data size: " + numTest);
-		System.out.println("Accuracy: " + (double)correct / (double)numTest);
-		System.out.println("--------------------------");
+		// Evaluate test statistics
+		System.out.println("Test statistics");
+		evaluateStatistics(TestX, TestY);
+		System.out.println();
 	}
 
 	
