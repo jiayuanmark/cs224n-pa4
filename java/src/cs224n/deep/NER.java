@@ -21,7 +21,8 @@ public class NER {
 		FeatureFactory.readWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/data/wordVectors.txt");
 
 		// Initialize model
-		WindowModel model = new WindowModel(5, 100, 0.001);
+		int [] layer = {100, 80};
+		WindowModel model = new WindowModel(7, layer, 0.0005, 0.0001);
 		model.initWeights();
 
 		// Check point
@@ -36,6 +37,6 @@ public class NER {
 		model.test(testData);
 		
 		// Dump word vectors
-		model.dumpWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/tSNE/trainedVectors.txt");
+		//model.dumpWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/tSNE/trainedVectors.txt");
 	}
 }

@@ -44,16 +44,17 @@ public class WindowModel {
 	protected double alpha;
 	
 	/* Regularization constant */
-	protected double C = 0.0001;
+	protected double C;
 	
 	/**
 	 * Shallow architecture constructor
 	 * 
-	 * @param windowSize
-	 * @param hiddenSize
-	 * @param lr
+	 * @param windowSize: context window size
+	 * @param hiddenSize: hidden layer size
+	 * @param lr: learning rate
+	 * @param reg: regularization parameter
 	 */
-	public WindowModel(int windowSize, int hiddenSize, double lr) {
+	public WindowModel(int windowSize, int hiddenSize, double lr, double reg) {
 		this.windowSize = windowSize;
 		this.wordSize = 50;
 		this.numOfHiddenLayer = 1;
@@ -61,23 +62,26 @@ public class WindowModel {
 		this.hiddenSize = new int[numOfHiddenLayer];
 		this.hiddenSize[0] = hiddenSize;
 		this.alpha = lr;
+		this.C = reg;
 	}
 	
 	
 	/**
 	 * Deep architecture constructor
 	 * 
-	 * @param windowSize
-	 * @param hiddenSize
-	 * @param lr
+	 * @param windowSize: context window size
+	 * @param hiddenSize: hidden layer size
+	 * @param lr: learning rate
+	 * @param reg: regularization parameter
 	 */
-	public WindowModel(int windowSize, int [] hiddenSize, double lr) {
+	public WindowModel(int windowSize, int [] hiddenSize, double lr, double reg) {
 		this.windowSize = windowSize;
 		this.wordSize = 50;
 		this.numOfHiddenLayer = hiddenSize.length;
 		this.W = new SimpleMatrix[numOfHiddenLayer];
 		this.hiddenSize = hiddenSize;
 		this.alpha = lr;
+		this.C = reg;
 	}
 	
 	
@@ -117,7 +121,7 @@ public class WindowModel {
 	
 	
 	
-	private List<List<Integer>> makeInputWindows(List<Datum> data) {
+	protected List<List<Integer>> makeInputWindows(List<Datum> data) {
 		int radius = windowSize / 2;
 		HashMap<String, Integer> dict = FeatureFactory.getDictionary();
 		
@@ -168,7 +172,7 @@ public class WindowModel {
 	}
 	
 	
-	private List<Double> makeLabels(List<Datum> data) {
+	protected List<Double> makeLabels(List<Datum> data) {
 		List<Double> labels = new ArrayList<Double>();
 		for (int i = 0; i < data.size(); ++i) {
 			if (data.get(i).label.equals("PERSON")) {
@@ -180,7 +184,7 @@ public class WindowModel {
 	}
 	
 	
-	private SimpleMatrix makeInputVector(List<Integer> win) {
+	protected SimpleMatrix makeInputVector(List<Integer> win) {
 		SimpleMatrix vec = new SimpleMatrix(wordSize * windowSize, 1);
 		for (int w = 0; w < win.size(); ++w) {
 			vec.insertIntoThis(w * wordSize, 0, L.extractVector(false, win.get(w)));
@@ -189,7 +193,7 @@ public class WindowModel {
 	}
 	
 	
-	private void evaluateStatistics(List<List<Integer>> Data, List<Double> Label) {
+	protected void evaluateStatistics(List<List<Integer>> Data, List<Double> Label) {
 		int numData = Data.size();
 		int truePositive = 0, falsePositive = 0, falseNegative = 0, trueNegative = 0;
 		for (int i = 0; i < numData; ++i) {
@@ -505,7 +509,7 @@ public class WindowModel {
 		
 		
 		// SGD
-		for (int epoch = 0; epoch < 2; ++epoch) {
+		for (int epoch = 0; epoch < 4; ++epoch) {
 			System.out.println("Epoch " + epoch);
 			
 			// Randomly shuffle examples
@@ -542,7 +546,7 @@ public class WindowModel {
 				List<Integer> wordIdx = TrainX.get(i);
 				for (int idx = 0; idx < wordIdx.size(); ++idx) {
 					L.insertIntoThis(0, wordIdx.get(idx), input.extractMatrix(idx * wordSize, (idx+1) * wordSize, 0, 1));
-				}		
+				}
 			}
 		}
 		
