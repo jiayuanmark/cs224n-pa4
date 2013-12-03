@@ -1,0 +1,41 @@
+java -Xmx1g -cp classes:extlib/ejml.jar cs224n.deep.NER -window 13 -layer 200,100 -alpha 0.0005 -regularize 0.0001 -dump ../tSNE/BoldVector.txt
+
+Training statistics
+-------------------------------
+Dataset size: 212419
+PERSON Precision: 0.8463541666666666
+PERSON Recall: 0.6717289719626168
+NON-PERSON Precision: 0.9820568110930462
+NON-PERSON Recall: 0.9932585162774292
+-------------------------------
+
+Finish training...
+Test statistics
+-------------------------------
+Dataset size: 53644
+PERSON Precision: 0.8570811744386874
+PERSON Recall: 0.6303588440774849
+NON-PERSON Precision: 0.977322319201995
+NON-PERSON Recall: 0.9934448955342113
+-------------------------------
+
+java -Xmx1g -cp classes:extlib/ejml.jar cs224n.deep.NER -window 7 -layer 100,80 -alpha 0.0005 -regularize 0.0001
+
+Training statistics
+-------------------------------
+Dataset size: 212419
+PERSON Precision: 0.7661750245821042
+PERSON Recall: 0.700215672178289
+NON-PERSON Precision: 0.9835054808676433
+NON-PERSON Recall: 0.9881862577065045
+-------------------------------
+
+Finish training...
+Test statistics
+-------------------------------
+Dataset size: 53644
+PERSON Precision: 0.7805316091954023
+PERSON Recall: 0.6900603366147984
+NON-PERSON Precision: 0.9808100668501769
+NON-PERSON Recall: 0.9878997920586197
+-------------------------------
