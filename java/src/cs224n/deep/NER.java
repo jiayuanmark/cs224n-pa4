@@ -3,48 +3,46 @@ package cs224n.deep;
 import java.util.*;
 import java.io.*;
 
-import cs224n.deep.CommandLineUtils;
-
-
 public class NER {
 
 	public static void main(String[] args) throws IOException {
 		
-		
+		// Default parameters
 		Map<String, String> options = new HashMap<String, String>();
-		options.put("-window-size",      "700");
-		options.put("-layers",      "100,80");
-		options.put("-data",      "/Users/jiayuanm/Documents/cs224n/cs224n-pa4/data");
-		options.put("-train",     "/train");
-		options.put("-test",      "/dev");
-		options.put("-alpha",    "0.0005");
+		options.put("-window", "700");
+		options.put("-layers", "100,80");
+		options.put("-data", "../data/");
+		options.put("-train", "train2");
+		options.put("-test", "dev2");
+		options.put("-alpha", "0.0005");
 		options.put("-regularize", "0.0001");
+		options.put("-dump", "../tSNE/trainedVectors.txt");
 
-		// let command-line options supersede defaults .........................
+		// Command-line options supersede defaults
 		options.putAll(CommandLineUtils.simpleCommandLineParser(args));
+		
 		String dataPath = options.get("-data");
 		String train = options.get("-train");
 		String test = options.get("-test");
-		
-		int windowSize = Integer.valueOf(options.get("-window-size")).intValue();
+		int windowSize = Integer.valueOf(options.get("-window")).intValue();
 		double alpha = Double.valueOf(options.get("-alpha")).doubleValue();
 		double C = Double.valueOf(options.get("-regularize")).doubleValue();
+		
 		// Read in the train and test data sets
 		List<Datum> trainData = FeatureFactory.readTrainData(dataPath + train);
 		List<Datum> testData = FeatureFactory.readTestData(dataPath + test);
 
 		// Read in dictionary and word vectors
-		FeatureFactory.initializeVocab(dataPath + "/vocab.txt");
-		FeatureFactory.readWordVectors(dataPath + "/wordVectors.txt");
+		FeatureFactory.initializeVocab(dataPath + "vocab.txt");
+		FeatureFactory.readWordVectors(dataPath + "wordVectors.txt");
 
 		// Initialize model
-		String[] layer_str = options.get("-layers").split(",");
-		int [] layer = new int[layer_str.length];
-		int i = 0;
-		for (String str : layer_str) {
-			layer[i] = Integer.valueOf(str).intValue();
-			i++;
+		String[] layerStr = options.get("-layers").split(",");
+		int [] layer = new int[layerStr.length];
+		for (int i = 0; i < layerStr.length; ++i) {
+			layer[i] = Integer.valueOf(layerStr[i]).intValue();
 		}
+		
 		WindowModel model = new WindowModel(windowSize, layer, alpha, C);
 		model.initWeights();
 
@@ -60,6 +58,6 @@ public class NER {
 		model.test(testData);
 		
 		// Dump word vectors
-		//model.dumpWordVectors("/Users/jiayuanm/Documents/cs224n/cs224n-pa4/tSNE/trainedVectors.txt");
+		model.dumpWordVectors(options.get("-dump"));
 	}
 }
