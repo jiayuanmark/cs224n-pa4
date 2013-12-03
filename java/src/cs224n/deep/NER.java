@@ -9,7 +9,7 @@ public class NER {
 		
 		// Default parameters
 		Map<String, String> options = new HashMap<String, String>();
-		options.put("-window", "700");
+		options.put("-window", "9");
 		options.put("-layers", "100,80");
 		options.put("-data", "../data/");
 		options.put("-train", "train2");
