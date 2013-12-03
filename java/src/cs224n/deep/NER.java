@@ -12,7 +12,7 @@ public class NER {
 		
 		
 		Map<String, String> options = new HashMap<String, String>();
-		options.put("-window-size",      "/afs/ir/class/cs224n/pa2/data/");
+		options.put("-window-size",      "700");
 		options.put("-layers",      "100,80");
 		options.put("-data",      "/Users/jiayuanm/Documents/cs224n/cs224n-pa4/data");
 		options.put("-train",     "/train");
