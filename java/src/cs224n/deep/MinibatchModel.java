@@ -81,10 +81,10 @@ public class MinibatchModel extends WindowModel {
 	
 	
 	@Override
-	public void train(List<Datum> trainData) {
+	public void train(List<Datum> trainData, int Epoch) {
 				
 		// Mini-batch gradient descent
-		for (int epoch = 0; epoch < 5; ++epoch) {
+		for (int epoch = 0; epoch < Epoch; ++epoch) {
 			System.out.println("Epoch " + epoch);
 			
 			// Randomly shuffle examples
