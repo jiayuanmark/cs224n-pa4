@@ -1,3 +1,46 @@
+java -Xmx2g -cp classes:extlib/ejml.jar cs224n.deep.NER -window 13 -layer 300 -dump 1 -epoch 10 -alpha 0.001
+
+Training statistics
+-------------------------------
+Dataset size: 212419
+PERSON Precision: 0.8786563502547651
+PERSON Recall: 0.8368080517613228
+NON-PERSON Precision: 0.9910019274505626
+NON-PERSON Recall: 0.9936112394493544
+-------------------------------
+
+Finish training...
+Test statistics
+-------------------------------
+Dataset size: 53644
+PERSON Precision: 0.8130389789582615
+PERSON Recall: 0.7484915846300413
+NON-PERSON Precision: 0.9843925509902454
+NON-PERSON Recall: 0.9892662639865333
+-------------------------------
+
+
+java -Xmx3g -cp classes:extlib/ejml.jar cs224n.deep.NER -window 13 -layer 300 -dump 1 -alpha 0.0005
+
+Training statistics
+-------------------------------
+Dataset size: 212419
+PERSON Precision: 0.9193891358979316
+PERSON Recall: 0.8547807332854062
+NON-PERSON Precision: 0.9920028900446868
+NON-PERSON Recall: 0.9958567447128783
+-------------------------------
+
+Finish training...
+Test statistics
+-------------------------------
+Dataset size: 53644
+PERSON Precision: 0.8075687254551945
+PERSON Recall: 0.718323277230867
+NON-PERSON Precision: 0.9825541372460319
+NON-PERSON Recall: 0.989325675809486
+-------------------------------
+
 java -Xmx1g -cp classes:extlib/ejml.jar cs224n.deep.NER -window 13 -layer 300
 
 Training statistics
