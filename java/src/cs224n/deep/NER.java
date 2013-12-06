@@ -60,7 +60,8 @@ public class NER {
 		model.test(testData);
 		
 		// Dump word vectors
-		if (options.containsKey("-dump"))
+		if (options.containsKey("-dump")) {
 			model.dumpWordVectors(options.get("-dump"));
+		}
 	}
 }

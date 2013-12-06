@@ -39,3 +39,24 @@ PERSON Recall: 0.6900603366147984
 NON-PERSON Precision: 0.9808100668501769
 NON-PERSON Recall: 0.9878997920586197
 -------------------------------
+
+java -Xmx1g -cp classes:extlib/ejml.jar cs224n.deep.NER -data ../data/ -window 5 -layers 100 -epoch 20
+
+Training statistics
+-------------------------------
+Dataset size: 212419
+PERSON Precision: 0.8288247839263666
+PERSON Recall: 0.6635514018691588
+NON-PERSON Precision: 0.9816028696378556
+NON-PERSON Recall: 0.9924239037016062
+-------------------------------
+
+Finish training...
+Test statistics
+-------------------------------
+Dataset size: 53644
+PERSON Precision: 0.8348809043197416
+PERSON Recall: 0.6567164179104478
+NON-PERSON Precision: 0.9788731018038971
+NON-PERSON Recall: 0.9919001881374393
+-------------------------------

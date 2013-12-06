@@ -19,6 +19,9 @@ public class WindowModel {
 	/* Unseen word placeholder */
 	public static final String UNKNOWN = "UUUNKKK";
 	
+	/* Cut-off point */
+	public static final double cutoff = 0.40;
+	
 	/* Word vectors */
 	protected SimpleMatrix L;
 	
@@ -201,7 +204,7 @@ public class WindowModel {
 			SimpleMatrix response = batchFeedforward(input);
 			
 			int result = 0;
-			if (response.get(0) > 0.5) result = 1;
+			if (response.get(0) > cutoff) result = 1;
 			int answer = Label.get(i).compareTo(1.0) == 0 ? 1 : 0;
 			
 			if (result == answer && answer == 1) {
@@ -496,7 +499,6 @@ public class WindowModel {
 		List<Double> TrainY = makeLabels(trainData);
 		int numTrain = trainData.size();
 		
-		
 		// Check gradient
 		/*for (int i = 0; i < 10; ++i) {
 			SimpleMatrix input = makeInputVector(TrainX.get(i));
@@ -506,6 +508,14 @@ public class WindowModel {
 			SimpleMatrix [] NG = numericalGrad(input, label);
 			checkGradient(G, NG);
 		}*/
+		
+		// All train data and label in the matrix format
+		SimpleMatrix trainDataAll = new SimpleMatrix(wordSize * windowSize, numTrain);
+		SimpleMatrix trainLabelAll = new SimpleMatrix(1, numTrain);
+		for (int i = 0; i < numTrain; ++i) {
+			trainDataAll.insertIntoThis(0, i, makeInputVector(TrainX.get(i)));
+			trainLabelAll.set(0, i, TrainY.get(i));
+		}
 		
 		
 		// SGD
@@ -525,9 +535,9 @@ public class WindowModel {
 				SimpleMatrix label = new SimpleMatrix(1, 1);
 				label.set(TrainY.get(i));
 				
-				if (i % 10000 == 0) {
+				if (i % 30000 == 0) {
 					System.out.println("\tProcessing " + i + "/" + numTrain + " examples.");
-					System.out.println("\tObjective function value: " + costFunction(input, label));
+					System.out.println("\tObjective function value: " + costFunction(trainDataAll, trainLabelAll));
 				}
 				
 				// Compute Gradient
