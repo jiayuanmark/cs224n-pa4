@@ -102,7 +102,9 @@ public class MinibatchModel extends WindowModel {
 				
 				if (i % 2000 == 0) {
 					System.out.println("\tProcessing " + i + "/" + numBatch + " mini-batches.");
-					System.out.println("\tObjective function value: " + costFunction(TrainX.get(i), TrainY.get(i)));
+					if (Verbose) {
+						System.out.println("\tObjective function value: " + costFunction(TrainX.get(i), TrainY.get(i)));
+					}
 				}
 				
 				// Compute Gradient

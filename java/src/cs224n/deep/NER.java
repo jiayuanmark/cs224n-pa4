@@ -14,7 +14,7 @@ public class NER {
 		options.put("-data", "../data/");
 		options.put("-train", "train2");
 		options.put("-test", "dev2");
-		options.put("-alpha", "0.0005");
+		options.put("-alpha", "0.001");
 		options.put("-regularize", "0.0001");
 		options.put("-epoch", "20");
 

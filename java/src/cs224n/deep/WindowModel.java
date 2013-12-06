@@ -20,7 +20,7 @@ public class WindowModel {
 	public static final String UNKNOWN = "UUUNKKK";
 	
 	/* Cut-off point */
-	public static final double cutoff = 0.45;
+	public static final double cutoff = 0.40;
 	
 	/* Word vectors */
 	protected SimpleMatrix L;
