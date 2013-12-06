@@ -490,7 +490,7 @@ public class WindowModel {
 	/**
 	 * Stochastic gradient descent training
 	 */
-	public void train(List<Datum> trainData) {
+	public void train(List<Datum> trainData, int Epoch) {
 		
 		List<List<Integer>> TrainX = makeInputWindows(trainData);
 		List<Double> TrainY = makeLabels(trainData);
@@ -509,7 +509,7 @@ public class WindowModel {
 		
 		
 		// SGD
-		for (int epoch = 0; epoch < 4; ++epoch) {
+		for (int epoch = 0; epoch < Epoch; ++epoch) {
 			System.out.println("Epoch " + epoch);
 			
 			// Randomly shuffle examples

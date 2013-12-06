@@ -16,7 +16,7 @@ public class NER {
 		options.put("-test", "dev2");
 		options.put("-alpha", "0.0005");
 		options.put("-regularize", "0.0001");
-		options.put("-dump", "../tSNE/trainedVectors.txt");
+		options.put("-epoch", "20");
 
 		// Command-line options supersede defaults
 		options.putAll(CommandLineUtils.simpleCommandLineParser(args));
@@ -27,6 +27,8 @@ public class NER {
 		int windowSize = Integer.valueOf(options.get("-window")).intValue();
 		double alpha = Double.valueOf(options.get("-alpha")).doubleValue();
 		double C = Double.valueOf(options.get("-regularize")).doubleValue();
+		int numOfEpoch = Integer.valueOf(options.get("-epoch")).intValue();
+		
 		
 		// Read in the train and test data sets
 		List<Datum> trainData = FeatureFactory.readTrainData(dataPath + train);
@@ -53,11 +55,12 @@ public class NER {
 		
 		// Train and Test
 		System.out.println("Start training...");
-		model.train(trainData);
+		model.train(trainData, numOfEpoch);
 		System.out.println("Finish training...");
 		model.test(testData);
 		
 		// Dump word vectors
-		model.dumpWordVectors(options.get("-dump"));
+		if (options.containsKey("-dump"))
+			model.dumpWordVectors(options.get("-dump"));
 	}
 }
