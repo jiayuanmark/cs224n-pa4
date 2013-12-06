@@ -28,7 +28,7 @@ public class NER {
 		double alpha = Double.valueOf(options.get("-alpha")).doubleValue();
 		double C = Double.valueOf(options.get("-regularize")).doubleValue();
 		int numOfEpoch = Integer.valueOf(options.get("-epoch")).intValue();
-		
+		boolean verbose = options.containsKey("-v");
 		
 		// Read in the train and test data sets
 		List<Datum> trainData = FeatureFactory.readTrainData(dataPath + train);
@@ -55,7 +55,7 @@ public class NER {
 		
 		// Train and Test
 		System.out.println("Start training...");
-		model.train(trainData, numOfEpoch);
+		model.train(trainData, numOfEpoch, verbose);
 		System.out.println("Finish training...");
 		model.test(testData);
 		

@@ -20,7 +20,7 @@ public class WindowModel {
 	public static final String UNKNOWN = "UUUNKKK";
 	
 	/* Cut-off point */
-	public static final double cutoff = 0.40;
+	public static final double cutoff = 0.45;
 	
 	/* Word vectors */
 	protected SimpleMatrix L;
@@ -493,7 +493,7 @@ public class WindowModel {
 	/**
 	 * Stochastic gradient descent training
 	 */
-	public void train(List<Datum> trainData, int Epoch) {
+	public void train(List<Datum> trainData, int Epoch, boolean Verbose) {
 		
 		List<List<Integer>> TrainX = makeInputWindows(trainData);
 		List<Double> TrainY = makeLabels(trainData);
@@ -510,13 +510,15 @@ public class WindowModel {
 		}*/
 		
 		// All train data and label in the matrix format
-		SimpleMatrix trainDataAll = new SimpleMatrix(wordSize * windowSize, numTrain);
-		SimpleMatrix trainLabelAll = new SimpleMatrix(1, numTrain);
-		for (int i = 0; i < numTrain; ++i) {
-			trainDataAll.insertIntoThis(0, i, makeInputVector(TrainX.get(i)));
-			trainLabelAll.set(0, i, TrainY.get(i));
+		SimpleMatrix trainDataAll = null, trainLabelAll = null;
+		if (Verbose) {
+			trainDataAll = new SimpleMatrix(wordSize * windowSize, numTrain);
+			trainLabelAll = new SimpleMatrix(1, numTrain);
+			for (int i = 0; i < numTrain; ++i) {
+				trainDataAll.insertIntoThis(0, i, makeInputVector(TrainX.get(i)));
+				trainLabelAll.set(0, i, TrainY.get(i));
+			}
 		}
-		
 		
 		// SGD
 		for (int epoch = 0; epoch < Epoch; ++epoch) {
@@ -537,7 +539,10 @@ public class WindowModel {
 				
 				if (i % 30000 == 0) {
 					System.out.println("\tProcessing " + i + "/" + numTrain + " examples.");
-					System.out.println("\tObjective function value: " + costFunction(trainDataAll, trainLabelAll));
+					if (Verbose) {
+						System.out.println("\tObjective function value: " 
+											+ costFunction(trainDataAll, trainLabelAll));
+					}
 				}
 				
 				// Compute Gradient
