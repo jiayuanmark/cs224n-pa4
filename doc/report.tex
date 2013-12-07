@@ -42,38 +42,37 @@ Since we decide to target Extra Credit at the very beginning, our design and imp
 
 \subsection{Building Blocks}
 
-\begin{itemize}
-\item \textbf{Feed Forward}: The implementation of feed forward function is relatively straightforward: doing iterative matrix multiplications and feeding the result to  nonlinear activation functions ($\tanh$ or sigmoid depends on which layer we are processing). We also implemented a regularized likelihood cost function to analyze the change of cost function during training.
+\textbf{Feed Forward}: The implementation of feed forward function is relatively straightforward: doing iterative matrix multiplications and feeding the result to  nonlinear activation functions ($\tanh$ or sigmoid depends on which layer we are processing). We also implemented a regularized likelihood cost function to analyze the changes of cost function during training.
+We implemented these two functions in batch mode,
+which can take in a batch of inputs, not a single input.
 \begin{verbatim}
 Line 235: public SimpleMatrix batchFeedforward(SimpleMatrix windows)
 Line 251: public double costFunction(SimpleMatrix X, SimpleMatrix L)
 \end{verbatim}
-\item \textbf{Initialization}: We initialize all $W$ randomly and set $b$ to zero as instructed. In addition, since we support multiple layer, the $fanIn$ value of each deeper layer is the hidden size of its previous layer.
+
+\textbf{Initialization}: We initialize all $W$ randomly and set $b$ to zero as instructed. In addition, since we support multiple layer, the $fanIn$ value of each deeper layer is the hidden size of its previous layer.
 \begin{verbatim}
 Line 280: public void initWeights()
 \end{verbatim}
-\item \textbf{Back Propagation}: There are several smaller component for building back propagation algorithm.
-We first ran a feed forward algorithm to get $z^{(i)}$ and $a^{(i)}$
-
-Refer the implementation at:
+\textbf{Back Propagation}: There are several smaller components for building back propagation algorithm.
+We first do a feed forward propagation to get $z^{(l)}$ and $a^{(l)}$ (defined in (\ref{eq:activation})), and then back propagate errors to calculate the gradient. We refer interested readers to Section \ref{sec:grad} for more details. The following implementation also supports gradient in batch mode so that we can also experiment with mini-batch gradient descent.
 \begin{verbatim}
- Line 313:protected SimpleMatrix[] backpropGrad(SimpleMatrix batch, SimpleMatrix label)
- \end{verbatim}
-  
-\item \textbf{Gradient Check}: 
-We implemented the numerical gradient calculation in WindowModel.java:
-\begin{verbatim}
-Line 418:protected SimpleMatrix[] numericalGrad(SimpleMatrix batch, SimpleMatrix label
+Line 313: protected SimpleMatrix[] backpropGrad(SimpleMatrix batch, SimpleMatrix label)
 \end{verbatim}
 
-\end{itemize}
+\textbf{Gradient Check}: 
+We implemented the numerical gradient calculation in
+\begin{verbatim}
+Line 418: protected SimpleMatrix[] numericalGrad(SimpleMatrix batch, SimpleMatrix label)
+\end{verbatim}
+and we use \texttt{checkGradient} function to ensure our gradient is calculated correctly (the $L_\infty$ norm between two gradient vectors is below $10^{-8}$).
 
-All of these components are implemented to support multiple layers calculation. User can pass an array of integers instead of only one integer to specify the hidden layer structure.
-After we make sure the gradient computing implementation is correct by the check test. We setup an initial run with option window size 5, hidden layer size 100, iteration 20. The F1 score is 0.734.
+\vspace{0.1cm}
 
+All of these components are implemented to support multiple layers calculation as well as batch mode. We setup an initial run with window size ($C$) 5, one hidden layer of size ($H$) 100, iterations through the dataset ($K$) 20. The F1 score is 0.734.
 
  
-\section{Gradients by Backpropagation (with Extra Credit)}
+\section{Gradients by Backpropagation (with Extra Credit)}\label{sec:grad}
 First of all, we ``absorb'' all bias terms into their corresponding weight matrices.  We did this by appending bias terms as the first column of the new weight matrices and padding. Doing so simplifies the problem formulation and derivation of gradients.
 
 For example, the procedure works as follows.
@@ -113,7 +112,7 @@ of how deep the network is. Therefore, the gradients derived here apply to netwo
 \vspace{0.1cm}
 
 For a network that has $L$ hidden layers, we iteratively define the activation vectors $a^{(l)}$ and each layer's nonlinear input vectors $z^{(l)}$ as follows.
-\begin{equation}
+\begin{equation}\label{eq:activation}
 \begin{split}
 z^{(0)} = x
 & \qquad 
@@ -193,67 +192,71 @@ If we add regularization terms to our cost function, the gradient of $\frac{\par
 \end{split}
 \end{equation*}
 Because we don't want to penalize bias terms, we zero out the first column (absorbed bias term) of each weight matrix.
+
 \section{Network Analysis}
 % include visulization here
 \subsection{Parameter Exploration}
-We setup series of parameter setting to explore the network.
+We setup series of parameter setting to explore the parameters of the network.
 \begin{itemize}
-\item Figure \ref{fig:window}: Fix learning rate as 0.001, regularization constant as 0.0001, hidden layer size 300 and run 10 iterations. Varies the window size from 3 to 15 with step size 2.
-\item Figure \ref{fig:hidden}: Fix learning rate as 0.001, regularization constant as 0.0001, window size 13 and run 10 iterations. Varies the hidden layer size from 100 to 300 with step size 50.
-\item Figure \ref{fig:epoch}: Fix learning rate as 0.001, regularization constant as 0.0001, hidden layer size 300 and window size 13. Varies the iteration from 5 to 20 with step size 5.
-\item Figure \ref{fig:alpha}: Fix window size as 13, regularization constant as 0.0001, hidden layer size 300 and run 10 iterations. Varies the learning rate from 0.0005 to 0.002 with step size 0.0005.
+\item Figure \ref{fig:window}: Fix learning rate as 0.001, regularization constant as 0.0001, one hidden layer of size 300 and run 10 iterations. Vary the window size from 3 to 15 with step size 2.
+\item Figure \ref{fig:hidden}: Fix learning rate as 0.001, regularization constant as 0.0001, window size 13 and run 10 iterations. Vary the single hidden layer size from 100 to 300 with step size 50.
+\item Figure \ref{fig:epoch}: Fix learning rate as 0.001, regularization constant as 0.0001, one hidden layer of size 300 and window size 13. Vary the iteration from 5 to 20 with step size 5.
+\item Figure \ref{fig:alpha}: Fix window size as 13, regularization constant as 0.0001, one hidden layer of size 300 and run 10 iterations. Vary the learning rate from 0.0005 to 0.002 with step size 0.0005.
 \end{itemize}
+
 \begin{figure}[ht]
 \centering
 \begin{subfigure}{.5\textwidth}
   \includegraphics[scale=0.5, width=1.0\linewidth]{window.png}
-  \caption{Window Size v.s. F1}
+  \caption{F1 score v.s. Window size $C$}
   \label{fig:window}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \includegraphics[scale=0.5, width=1.0\linewidth]{hidden.png}
-  \caption{Hidden Layer Size v.s. F1}
+  \caption{F1 score v.s. Single hidden layer size $H$}
   \label{fig:hidden}
 \end{subfigure}
 \begin{subfigure}{.5\textwidth}
   \includegraphics[scale=0.5, width=1.0\linewidth]{epoch.png}
-  \caption{Epoch v.s. F1}
+  \caption{F1 score v.s. Epochs $K$}
   \label{fig:epoch}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \includegraphics[scale=0.5, width=1.0\linewidth]{alpha.png}
-  \caption{Learning Rate v.s. F1}
+  \caption{F1 score v.s. Learning Rate $\alpha$}
   \label{fig:alpha}
 \end{subfigure}
-\caption{parameter exploration}
+\caption{Network parameter exploration}
 \label{fig:exploration}
 \end{figure}
-The window size seems to be the most influential result according to our observation. We also realized that we never actually overfit the neural network throughout our exploration. The F1 stay at $0.75$ ~ $0.77$, it didn't drop down even we increase our hidden layer size or the iterations. 
-% plot of different window size, learning curve?
-\subsection{Word Cluster}
-We picked 1000 most frequent words from both person and non-person set for running tSNE to reduce the data dimension to 2 for visualization. \\
+Based on our experiments, the window size ($C$) seems to be the most influential parameter. We also observed that we seldom overfit our model throughout our exploration. The F1 score on the dev set stays between $0.75$ and $0.77$, it does not drop down even we increase our hidden layer size or the iterations.
+
+
+\subsection{Word Vector Visualization}
+We picked 1000 most frequent words from both PERSON and NON-PERSON set for running tSNE to embed vectors from 50 dimensional space to 2 dimensional space for visualization.
 \begin{figure}[ht]
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[width=1.0\linewidth]{before.png}
-  \caption{before training}
+  \caption{Before training}
   \label{fig:vectors_before}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[width=1.0\linewidth]{after.png}
-  \caption{after training}
+  \caption{After training}
   \label{fig:vectors_after}
 \end{subfigure}
-\caption{word vectors distribution}
+\caption{Word vector visualization}
 \label{fig:vectors}
 \end{figure}
-The unsupervised algorithm give the initial word vectors actually performs well. Those personal words are divided into two clusters with the larger one surrounding by those non-person words. However, we can observe several non-person words are mixed with those person words. \\
-After training, the larger person points cluster tends to be more compact than before. \\
+The embedding algorithm shows that the initial word vectors actually perform well. Those PERSON words are approximately divided into two clusters with the larger one surrounding by those NON-PERSON words. However, we can still observe that several NON-PERSON words are mixed with those PERSON words.
+After training, the larger PERSON cluster tends to be more compact than before and there are less NON-PERSON words that are mixed with PERSON words.
+
 \subsection{Error Analysis}
-\begin{itemize}
-\item False Positive: We observe that the non-person words be recognized as a person name can be categorized into: \\
+
+\textbf{False Positive} We observe that the situations where a NON-PERSON word is recognized as a person name can be categorized as follows.
 \begin{itemize}
 \item Proper Noun:
 \begin{verbatim}
@@ -277,14 +280,15 @@ I, he, they, One, Some, A, An, The, St, At ...
 Cardinal, Federal, Court, Commerce ...
 \end{verbatim}
 \end{itemize}
-For those special nouns such as brand names or place names, they serve a very similar purpose as a personal name in a sentence. We also notice some of these words are having a very high response score. Unless with adequate domain knowledge of them, it is even hard for a real human to tell if they are a person name or not.
+For those special nouns such as brand names or place names, they serve a very similar purpose as a personal name in a sentence. We also notice some of these words are having a very high response score. Unless with adequate domain knowledge of them, it is even hard for a real human to tell if they are a person name or not. As a person name always appears with some determinant or proposition words, those words are being misclassified as a person word even in some situations they are not appeared with a name. 
 
-As person name always appears with some determinant or proposition words, those words are being misclassified as a person word even in some situations they are not appeared with a name.  
+\vspace{0.1cm}
 
-Generally speaking, we observe that the words being misclassified as person are not random. They share both similar context and word category as a person name.
+Generally speaking, we observe that the words that have been misclassified as person names are not random. They share both similar context and word category as person names.
 
+\vspace{0.1cm}
 
-\item False Negative: similar to false positive, we categorize these personal words not being recognized into:
+\textbf{False Negative} Similar to false positive, we categorize these personal words not being recognized into:
 \begin{itemize}
 \item Symbol or Proposition
 \begin{verbatim}
@@ -294,7 +298,6 @@ Generally speaking, we observe that the words being misclassified as person are 
 \begin{verbatim}
 Clinton, Mark, Van, Albert, Dole, ...
 \end{verbatim}
-\end{itemize}
 
 Due to those symbols are more often appear with some non person name, they are not recognized as person names.
 
