@@ -303,15 +303,12 @@ Due to those symbols are more often appear with some non person name, they are n
 
 There are various reason for these names are not being recognized. Some names do not appear in the training set. Some names may serve other purposes in a sentence, e.g. mark may be a verb in many cases.
 \end{itemize}
+
+
 \section{Extra Credit and More Experiments}
-\subsection{Mini-batch Gradient Descent}
-We extend the SGD to a mini-batch gradient update scheme to see if we can converge to a better result in less epoch. We extend WindowModel class and override the train function to select a batch of instances.
-\subsubsection{Partition}
-Since there are a lot more non-person words than person words, we try to pick up a batch of instances contains both person words and non-person words together for gradient descent. We partition the training data by FIXME.
-\subsubsection{Result}
-The result FIXME
-\subsection{More Parameters Tuning}
-\subsubsection{Multiple Hidden Layer}
+
+
+\subsection{Multiple Hidden Layer}
 We did some experiements to make the network deeper by specifying different hidden layer stucture while fixing the window size 13, iteration 20, learning rate 0.001 and regularization cost 0.0001. Following table \ref{tab:multihidden} display results:
 \begin{table}[h]
 \begin{center}
@@ -336,7 +333,9 @@ We did some experiements to make the network deeper by specifying different hidd
 \label{tab:multihidden}
 \end{center}
 \end{table}
-\subsubsection{Cut Off Point}
+
+
+\subsection{Cut Off Point}
 Instead of using fixed cutoff 0.5 for decided if a response indicated whether the window is person or not, we tried to treat this cutoff as a hyper parameter and tune it on the dev set.
 \begin{figure}[ht]
 \begin{center}
@@ -345,6 +344,15 @@ Instead of using fixed cutoff 0.5 for decided if a response indicated whether th
 \label{fig:cutoff}
 \end{center}
 \end{figure}
-We vary the cutoff value from 0 to 1 with step size 0.05 and find out the best cut off value is just around 0.45 to 0.5. 
+We vary the cutoff value from 0 to 1 with step size 0.05 and find out the best cut off value is just around 0.45 to 0.5.
+
+
+\subsection{Mini-batch Gradient Descent}
+We extend the SGD to a mini-batch gradient update scheme to see if we can converge to a better result in less epoch. We extend WindowModel class and override the train function to select a batch of instances.
+\subsubsection{Partition}
+Since there are a lot more non-person words than person words, we try to pick up a batch of instances contains both person words and non-person words together for gradient descent. We partition the training data by FIXME.
+\subsubsection{Result}
+The result FIXME
+
 
 \end{document}
