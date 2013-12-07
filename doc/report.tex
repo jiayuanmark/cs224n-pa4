@@ -42,10 +42,10 @@ Since we decide to target Extra Credit at the very beginning, our design and imp
 \subsection{Building Blocks}
 
 \begin{itemize}
-\item \textbf{Feed Forward}: The implementation of Feed Forward is relative straight forward by doing the matrix multiplication iteratively, and feed the result to tanh or sigmoid helper function depends on where we progress. We also implemented a cost function adding the regularization to result difference between feed forward and label.
+\item \textbf{Feed Forward}: The implementation of feed forward function is relatively straightforward: doing iterative matrix multiplications and feeding the result to  nonlinear activation functions ($\tanh$ or sigmoid depends on which layer we are processing). We also implemented a regularized likelihood cost function to analyze the learning curve.
 \begin{verbatim}
 Line 235: public SimpleMatrix batchFeedforward(SimpleMatrix windows)
-Line 251:public double costFunction(SimpleMatrix X, SimpleMatrix L)
+Line 251: public double costFunction(SimpleMatrix X, SimpleMatrix L)
 \end{verbatim}
 
 \item \textbf{Initialization}: We initialize all $W$ randomly and set $b$ to zero as instructed. In addition, since we support multiple layer, the $fanIn$ value of each deeper layer is the hidden size of its previous layer.
