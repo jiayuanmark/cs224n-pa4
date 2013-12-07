@@ -7,10 +7,11 @@
 \usepackage{amssymb}
 \usepackage{algorithmic}
 \usepackage{algorithm}
-\usepackage{subfig}
 \usepackage{tikz}
 \usepackage{hhline}
 \usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
 
 \setlength\parindent{0pt}
 
@@ -192,6 +193,155 @@ If we add regularization terms to our cost function, the gradient of $\frac{\par
 \end{split}
 \end{equation*}
 Because we don't want to penalize bias terms, we zero out the first column (absorbed bias term) of each weight matrix.
+\section{Network Analysis}
+% include visulization here
+\subsection{Parameter Exploration}
+We setup series of parameter setting to explore the network.
+\begin{itemize}
+\item Figure \ref{fig:window}: Fix learning rate as 0.001, regularization constant as 0.0001, hidden layer size 300 and run 10 iterations. Varies the window size from 3 to 15 with step size 2.
+\item Figure \ref{fig:hidden}: Fix learning rate as 0.001, regularization constant as 0.0001, window size 13 and run 10 iterations. Varies the hidden layer size from 100 to 300 with step size 50.
+\item Figure \ref{fig:epoch}: Fix learning rate as 0.001, regularization constant as 0.0001, hidden layer size 300 and window size 13. Varies the iteration from 5 to 20 with step size 5.
+\item Figure \ref{fig:alpha}: Fix window size as 13, regularization constant as 0.0001, hidden layer size 300 and run 10 iterations. Varies the learning rate from 0.0005 to 0.002 with step size 0.0005.
+\end{itemize}
+\begin{figure}[ht]
+\centering
+\begin{subfigure}{.5\textwidth}
+  \includegraphics[scale=0.5, width=1.0\linewidth]{window.png}
+  \caption{Window Size v.s. F1}
+  \label{fig:window}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \includegraphics[scale=0.5, width=1.0\linewidth]{hidden.png}
+  \caption{Hidden Layer Size v.s. F1}
+  \label{fig:hidden}
+\end{subfigure}
+\begin{subfigure}{.5\textwidth}
+  \includegraphics[scale=0.5, width=1.0\linewidth]{epoch.png}
+  \caption{Epoch v.s. F1}
+  \label{fig:epoch}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \includegraphics[scale=0.5, width=1.0\linewidth]{alpha.png}
+  \caption{Learning Rate v.s. F1}
+  \label{fig:alpha}
+\end{subfigure}
+\caption{parameter exploration}
+\label{fig:exploration}
+\end{figure}
+The window size seems to be the most influential result according to our observation. We also realized that we never actually overfit the neural network throughout our exploration. The F1 stay at $0.75$ ~ $0.77$, it didn't drop down even we increase our hidden layer size or the iterations. 
+% plot of different window size, learning curve?
+\subsection{Word Cluster}
+We picked 1000 most frequent words from both person and non-person set for running tSNE to reduce the data dimension to 2 for visualization. \\
+\begin{figure}[ht]
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{before.png}
+  \caption{before training}
+  \label{fig:vectors_before}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{after.png}
+  \caption{after training}
+  \label{fig:vectors_after}
+\end{subfigure}
+\caption{word vectors distribution}
+\label{fig:vectors}
+\end{figure}
+The unsupervised algorithm give the initial word vectors actually performs well. Those personal words are divided into two clusters with the larger one surrounding by those non-person words. However, we can observe several non-person words are mixed with those person words. \\
+After training, the larger person points cluster tends to be more compact than before. \\
+\subsection{Error Analysis}
+\begin{itemize}
+\item False Positive: We observe that the non-person words be recognized as a person name can be categorized into: \\
+\begin{itemize}
+\item Proper Noun:
+\begin{verbatim}
+Place: Russia, Moscow, England, Texas, Chicago, China ...
+\end{verbatim}
+\begin{verbatim}
+Date: Wednesday, Tuesday, September, Thursday...
+\end{verbatim}
+\begin{verbatim}
+Others: Honda, Mercedes-Benz, Reuters, Eurodollars, T-bonds, KDP, KeyCorp ...
+\end{verbatim}
+\begin{verbatim}
+Numbers: 6-0-40-1, 9.5-0-44-1, 42 ...
+\end{verbatim}
+\item Pronoun, Determinant or Preposition appear with Name
+\begin{verbatim}
+I, he, they, One, Some, A, An, The, St, At ...
+\end{verbatim}
+\item Other
+\begin{verbatim}
+Cardinal, Federal, Court, Commerce ...
+\end{verbatim}
+\end{itemize}
+For those special nouns such as brand names or place names, they serve a very similar purpose as a personal name in a sentence. We also notice some of these words are having a very high response score. Unless with adequate domain knowledge of them, it is even hard for a real human to tell if they are a person name or not.
 
+As person name always appears with some determinant or proposition words, those words are being misclassified as a person word even in some situations they are not appeared with a name.  
+
+Generally speaking, we observe that the words being misclassified as person are not random. They share both similar context and word category as a person name.
+
+
+\item False Negative: similar to false positive, we categorize these personal words not being recognized into:
+\begin{itemize}
+\item Symbol or Proposition
+\begin{verbatim}
+", (, ), of
+\end{verbatim}
+\item Names
+\begin{verbatim}
+Clinton, Mark, Van, Albert, Dole, ...
+\end{verbatim}
+\end{itemize}
+
+Due to those symbols are more often appear with some non person name, they are not recognized as person names.
+
+There are various reason for these names are not being recognized. Some names do not appear in the training set. Some names may serve other purposes in a sentence, e.g. mark may be a verb in many cases.
+\end{itemize}
+\section{Extra Credit and More Experiments}
+\subsection{Mini-batch Gradient Descent}
+We extend the SGD to a mini-batch gradient update scheme to see if we can converge to a better result in less epoch. We extend WindowModel class and override the train function to select a batch of instances.
+\subsubsection{Partition}
+Since there are a lot more non-person words than person words, we try to pick up a batch of instances contains both person words and non-person words together for gradient descent. We partition the training data by FIXME.
+\subsubsection{Result}
+The result FIXME
+\subsection{More Parameters Tuning}
+\subsubsection{Multiple Hidden Layer}
+We did some experiements to make the network deeper by specifying different hidden layer stucture while fixing the window size 13, iteration 20, learning rate 0.001 and regularization cost 0.0001. Following table \ref{tab:multihidden} display results:
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{Hidden Layer Size} & 
+\multicolumn{3}{c|}{PERSON (training/dev)} & \multicolumn{3}{c|}{NON-PERSON (training/dev)} \\
+\hhline{~------}
+& Precision & Recall & F1 & Precision & Recall & F1 \\
+\hline
+100, 100 & 78.07/78.76 & 74.41/69.91 & 76.19/74.07 
+& 66.06/73.99 & 67.37/66.51 & 66.81/70.05 \\
+\hline
+150, 150 & 79.99/80.80 & 75.15/69.60 & 77.50/74.78 
+& 65.90/75.83 & 68.93/66.68 & 67.38/70.96 \\
+\hline
+200, 200 & 85.37/84.05 & 72.39/65.29 & 78.35/73.49
+& 80.72/85.20 & 64.69/62.62 & 71.82/72.19 \\
+\hline
+\end{tabular}
+\caption{Scores for experiment different multiple hidden layers structure}
+\label{tab:multihidden}
+\end{center}
+\end{table}
+\subsubsection{Cut Off Point}
+Instead of using fixed cutoff 0.5 for decided if a response indicated whether the window is person or not, we tried to treat this cutoff as a hyper parameter and tune it on the dev set.
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[scale=0.2]{f1.png}
+\caption{F1 v.s. cutoff value}
+\label{fig:cutoff}
+\end{center}
+\end{figure}
+We vary the cutoff value from 0 to 1 with step size 0.05 and find out the best cut off value is just around 0.45 to 0.5. 
 
 \end{document}
