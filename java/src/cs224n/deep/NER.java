@@ -45,7 +45,7 @@ public class NER {
 			layer[i] = Integer.valueOf(layerStr[i]).intValue();
 		}
 		
-		WindowModel model = new WindowModel(windowSize, layer, alpha, C);
+		WindowModel model = new MinibatchModel(windowSize, layer, alpha, C);
 		model.initWeights();
 
 		// Check point

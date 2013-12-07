@@ -11,7 +11,6 @@
 \usepackage{tikz}
 \usepackage{hhline}
 \usepackage{multirow}
-%\usepackage{times}
 
 \setlength\parindent{0pt}
 
@@ -27,16 +26,173 @@
 }
 \maketitle
 
+
+\section{Implementation Details}
+
+\subsection{Matlab Style Code}
+Because we are comfortable with Matlab style of operating with matrices and vectors and EJML does not support all Matlab-like APIs, we choose to implement some Matlab style matrix helper functions such as \texttt{repmat}, \texttt{horzcat} in \texttt{MatlabAPI}.
+
+\vspace{0.1cm}
+
+We also implement several helper methods such as \texttt{sigmoid}, \texttt{tanh}, \texttt{tanhDerivative} to make our neural network code more modular, e.g. feedforward to be more readable.
+
+\subsection{Multiple Layer Support}
+Since we decide to target Extra Credit at the very beginning, our design and implementation automatically support multiple ($\ge 1$) hidden layer neural networks (or deep architectures). In addition to the default constructor of \texttt{WindowModel} which takes in a single number as the size of one hidden layer, the sizes of multiple hidden layers can be passed in as an array of integers to another ``deep'' constructor of \texttt{WindowModel}. All our implementations of feed forward propagation, back propagation and gradient checking support multiple layer architectures.  
+
+\subsection{Building Blocks}
+
+\begin{itemize}
+\item \textbf{Feed Forward}: The implementation of Feed Forward is relative straight forward by doing the matrix multiplication iteratively, and feed the result to tanh or sigmoid helper function depends on where we progress. We also implemented a cost function adding the regularization to result difference between feed forward and label.
+\begin{verbatim}
+Line 235: public SimpleMatrix batchFeedforward(SimpleMatrix windows)
+Line 251:public double costFunction(SimpleMatrix X, SimpleMatrix L)
+\end{verbatim}
+
+\item \textbf{Initialization}: We initialize all $W$ randomly and set $b$ to zero as instructed. In addition, since we support multiple layer, the $fanIn$ value of each deeper layer is the hidden size of its previous layer.
+\begin{verbatim}
+Line 280:public void initWeights()
+\end{verbatim}
+\item \textbf{Back Propagation}: There are several smaller component for building back propagation algorithm.
+We first ran a feed forward algorithm to get $z^{(i)}$ and $a^{(i)}$
+
+Refer the implementation at:
+\begin{verbatim}
+ Line 313:protected SimpleMatrix[] backpropGrad(SimpleMatrix batch, SimpleMatrix label)
+ \end{verbatim}
+  
+\item \textbf{Gradient Check}: 
+We implemented the numerical gradient calculation in WindowModel.java:
+\begin{verbatim}
+Line 418:protected SimpleMatrix[] numericalGrad(SimpleMatrix batch, SimpleMatrix label
+\end{verbatim}
+
+\end{itemize}
+
+All of these components are implemented to support multiple layers calculation. User can pass an array of integers instead of only one integer to specify the hidden layer structure.
+After we make sure the gradient computing implementation is correct by the check test. We setup an initial run with option window size 5, hidden layer size 100, iteration 20. The F1 score is 0.734.
+
+
  
-\section{Backpropagation}
+\section{Gradients by Backpropagation (with Extra Credit)}
+First of all, we ``absorb'' all bias terms into their corresponding weight matrices.  We did this by appending bias terms as the first column of the new weight matrices and padding. Doing so simplifies the problem formulation and derivation of gradients.
+
+For example, the procedure works as follows.
+\begin{equation}
+W x + b
+\qquad
+\textrm{ is rewritten into }
+\qquad
+W^\prime
+x^\prime
+=
+\begin{bmatrix}
+b & W
+\end{bmatrix}
+\begin{bmatrix}
+1 \\ x
+\end{bmatrix}
+\end{equation}
+Unless otherwise indicated, the report assumes the weight matrix $W^{(l)}$ of layer $l$ is the absorbed version of the original weight matrix and its corresponding bias term, i.e.
+\begin{equation}
+\begin{split}
+W^{(l)} & =
+\begin{bmatrix}
+b^{(i)} & W^{(l)}_\textrm{ori}
+\end{bmatrix} \\
+U &=
+\begin{bmatrix}
+b & U_\textrm{ori}
+\end{bmatrix}
+\end{split}
+\end{equation}
 
 
-\section{Extra Credit}
+We derive the gradients of our neural network regardless
+of how deep the network is. Therefore, the gradients derived here apply to networks of one or multiple hidden layers (extra credit).
+
+\vspace{0.1cm}
+
+For a network that has $L$ hidden layers, we iteratively define the activation vectors $a^{(l)}$ and each layer's nonlinear input vectors $z^{(l)}$ as follows.
+\begin{equation}
+\begin{split}
+z^{(0)} = x
+& \qquad 
+a^{(0)} =
+\begin{bmatrix}
+1 \\ z^{(0)}
+\end{bmatrix} 
+\qquad
+\textrm{where } x \textrm{ is the input vector} \\
+z^{(l)} = W^{(l)} a^{(l-1)}
+& \qquad
+a^{(l)} = 
+\begin{bmatrix}
+1 \\ f(z^{(l)})
+\end{bmatrix}
+\qquad
+\textrm{for } l = 1, \dots, L \\
+z^{(L+1)} = U a^{(L)}
+& \qquad
+a^{(L+1)} = g(z^{(L+1)})
+\end{split}
+\end{equation}
+where $f$ is the nonlinear $\tanh$ function and $g$ is the sigmoid function. Notice that the definition of $a$ and $z$ follow closelt the procedure of forward propagation. The final layer of activation $h_\theta(x) = a^{(L+1)}$ is the output of the entire neural network.
+
+\vspace{0.1cm}
+
+Back propagation algorithm works by propagating errors $\delta^{(l)}$ progressively from the output layer to the input layer. Following back propagation, we give the iterative definition of $\delta^{(l)}$ as follows.
+\begin{equation}
+\begin{split}
+\delta^{(L+1)} &= h_\theta(x) - y = a^{(L+1)} - y \\
+\delta^{(L)} &= U^T \delta^{(L+1)}(2:\textrm{end}).* \tanh^\prime (z^{(L)}) \\
+\delta^{(l)} &= (W^{(l+1)})^T \delta^{(l+1)} (2:\textrm{end}) .* \tanh^\prime
+(z^{(l)}) \qquad \textrm{for } l = 1, \dots, L-1 \\
+\delta^{(0)} & = (W^{(1)})^T \delta^{(1)} (2:\textrm{end})
+\end{split}
+\end{equation}
+where $.*$ is the Matlab notation of element-wise multiplication, $(2:\textrm{end})$ is the Matlab notation of dropping the first row and $\tanh^\prime$ is the derivative of $\tanh$ function, namely $1 - \tanh^2(x)$.
+
+\vspace{0.1cm}
+
+Finally, we can define the gradient of our neural network as follows.
+\begin{equation}
+\begin{split}
+\frac{\partial J(\theta)}{\partial U} &
+= \delta^{(L+1)} (a^{(L)})^T \\
+\frac{\partial J(\theta)}{\partial W^{(l)}} &
+= \delta^{(l)}(a^{(l-1)})^T \qquad \textrm{for } l = 1, \dots L \\
+\frac{\partial J(\theta)}{\partial L} &
+= \delta^{(0)}
+\end{split}
+\end{equation}
+Notice that $\frac{\partial J(\theta)}{\partial W^{(l)}}$ is applied to the absorbed weight matrix $W^{(l)}$ which includes the bias terms $b^{(l)}$, so that we don't have a separate $\frac{\partial J(\theta)}{\partial b^{(l)}}$ gradient.
+
+\vspace{0.1cm}
+
+If we add regularization terms to our cost function, the gradient of $\frac{\partial J(\theta)}{\partial U}$ and  $\frac{\partial J(\theta)}{\partial W^{(l)}}$ should be updated as follows.
+
+\begin{equation*}
+\begin{split}
+\frac{\partial J(\theta)}{\partial U} &
+= \delta^{(L+1)} (a^{(L)})^T + C 
+\begin{bmatrix}
+0 & U_{12} & \dots & U_{1m} \\
+0 & U_{22} & \dots & U_{2m} \\
+\vdots & \vdots & \dots & \vdots  \\
+0 & U_{n2} & \dots & U_{nm} \\
+\end{bmatrix} \\
+\frac{\partial J(\theta)}{\partial W^{(l)}} &
+= \delta^{(l)}(a^{(l-1)})^T + C
+\begin{bmatrix}
+0 & W_{12} & \dots & W_{1m} \\
+0 & W_{22} & \dots & W_{2m} \\
+\vdots & \vdots & \dots & \vdots  \\
+0 & W_{n2} & \dots & W_{nm} \\
+\end{bmatrix}
+\qquad \textrm{for } l = 1, \dots L
+\end{split}
+\end{equation*}
+Because we don't want to penalize bias terms, we zero out the first column (absorbed bias term) of each weight matrix.
 
 
-\section{Beyond Extra Credit} 
-
-
-\section{Experiments}
- 
 \end{document}
