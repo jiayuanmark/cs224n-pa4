@@ -42,15 +42,14 @@ Since we decide to target Extra Credit at the very beginning, our design and imp
 \subsection{Building Blocks}
 
 \begin{itemize}
-\item \textbf{Feed Forward}: The implementation of feed forward function is relatively straightforward: doing iterative matrix multiplications and feeding the result to  nonlinear activation functions ($\tanh$ or sigmoid depends on which layer we are processing). We also implemented a regularized likelihood cost function to analyze the learning curve.
+\item \textbf{Feed Forward}: The implementation of feed forward function is relatively straightforward: doing iterative matrix multiplications and feeding the result to  nonlinear activation functions ($\tanh$ or sigmoid depends on which layer we are processing). We also implemented a regularized likelihood cost function to analyze the change of cost function during training.
 \begin{verbatim}
 Line 235: public SimpleMatrix batchFeedforward(SimpleMatrix windows)
 Line 251: public double costFunction(SimpleMatrix X, SimpleMatrix L)
 \end{verbatim}
-
 \item \textbf{Initialization}: We initialize all $W$ randomly and set $b$ to zero as instructed. In addition, since we support multiple layer, the $fanIn$ value of each deeper layer is the hidden size of its previous layer.
 \begin{verbatim}
-Line 280:public void initWeights()
+Line 280: public void initWeights()
 \end{verbatim}
 \item \textbf{Back Propagation}: There are several smaller component for building back propagation algorithm.
 We first ran a feed forward algorithm to get $z^{(i)}$ and $a^{(i)}$
