@@ -32,7 +32,6 @@ public class FeatureFactory {
 		return wordToNum;
 	}
 	
-	
 	private static List<Datum> trainData;
 
 	/** Do not modify this method **/

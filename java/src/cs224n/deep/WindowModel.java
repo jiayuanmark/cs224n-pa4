@@ -1,8 +1,11 @@
 package cs224n.deep;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
@@ -227,6 +230,22 @@ public class WindowModel {
 		System.out.println("-------------------------------");
 	}
 	
+	protected void dumpStatistics(List<List<Integer>> Data, List<Double> Label) {
+		int numData = Data.size();
+		try {
+			PrintWriter pw = new PrintWriter(new File("response_" + String.valueOf(System.currentTimeMillis() / 1000)));
+			for (int i = 0; i < numData; ++i) {
+				SimpleMatrix input = makeInputVector(Data.get(i));
+				SimpleMatrix response = batchFeedforward(input);
+				pw.println(FeatureFactory.getTestData().get(i).word + "\t" + response + "\t" + Label.get(i) + "\n");
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
 	
 	
 	/**
@@ -583,7 +602,7 @@ public class WindowModel {
 		
 		// Evaluate test statistics
 		System.out.println("Test statistics");
-		evaluateStatistics(TestX, TestY);
+		dumpStatistics(TestX, TestY);
 		System.out.println();
 	}
 
