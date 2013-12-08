@@ -237,7 +237,8 @@ Based on our experiments, the window size ($C$) seems to be the most influential
 \label{fig:learning_curve}
 \end{center}
 \end{figure}
-We summarize some of our best results from these runs in Table \ref{tab:network}.
+We summarize some of our best results from these runs in Table \ref{tab:network}. We use the optimal parameter configurations to run our model only once on the test set,
+we obtain a F1 score of $0.692$ (Precision: 80.44\%, Recall: 60.77\%).
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{|c|c|c|c|}
@@ -370,7 +371,7 @@ Intuitively, we can lower the cutoff value so that the classifier will recall mo
 Instead of using the fixed $0.5$ to determine whether a word is a person name or not, we tried to treat this cutoff as a hyperparameter and tune it on the dev set.
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[scale=0.2]{f1.png}
+\includegraphics[width=0.8\textwidth]{f1.png}
 \caption{F1 score v.s. cutoff value}
 \label{fig:cutoff}
 \end{center}
@@ -379,11 +380,23 @@ In Figure \ref{fig:cutoff}, we vary the cutoff point from 0 to 1 with step size 
 
 
 \subsection{Mini-batch Gradient Descent}
-We extend the SGD to a mini-batch gradient update scheme to see if we can converge to a better result in less epoch. We extend WindowModel class and override the train function to select a batch of instances.
+As mentioned before, our implementation support batch evaluation.
+We extend stochastic gradient descent to a mini-batch gradient update scheme to see if we can converge to a better result in less number of epochs. In \texttt{MinibatchModel}, we extend \texttt{WindowModel} class and override the train function to run mini-batch gradient descent.
+
+
 \subsubsection{Partition}
-Since there are a lot more non-person words than person words, we try to pick up a batch of instances contains both person words and non-person words together for gradient descent. We partition the training data by FIXME.
+Since there are a lot more NON-PERSON words than PERSON words, we try to partition the data to batches of instances that contain both PERSON words and NON-PERSON words together for gradient descent.
+
+\subsubsection{Batch Gradient}
+The gradient under batch mode is not so different from the gradient in stochastic gradient descent
+
+
 \subsubsection{Result}
-The result FIXME
+As discussed with one of TAs during office hour, we conclude that the result of mini-batch gradient descent is not so good. There are two reasons to explain why:
+\begin{itemize}
+\item
+\item
+\end{itemize}
 
 
 \end{document}
