@@ -288,7 +288,7 @@ After training, the larger PERSON cluster tends to be more compact than before a
 
 \textbf{False Positive} We observe that the situations where a NON-PERSON word is recognized as a person name can be categorized as follows. The number in the parenthesis is the response score of trained neural network.
 \begin{itemize}
-\item Proper Noun:
+\item Proper Noun
 \begin{verbatim}
 Place: Russia(0.9), Moscow(0.894), England(0.947), Texas(0.944),
 Chicago(0.941), China(0.967) ...
@@ -332,9 +332,7 @@ Generally speaking, we observe that the words that have been misclassified as pe
 Clinton(0.001), Mark(0.297), Van(0.015), Albert(0.004), Dole(0.009), ...
 \end{verbatim}
 
-Due to those symbols are more often appear together with NON-PERSON words, they are not recognized as person names.
-
-There are various reason for actual PERSON names are not being recognized. Some names do not appear in the training set. Some names may serve other purposes in a sentence, e.g. mark may be a verb in many cases.
+Due to the fact that those symbols appear more often together with NON-PERSON words, they are not recognized as person names. There are various reasons that can explain why these PERSON names are not being recognized correctly. Some names do not appear in the training set. Some names may serve other purposes in a sentence, e.g. ``Mark'' may be a verb in many cases, and ``Van'' may be a valid noun under many cases.
 \end{itemize}
 
 
@@ -363,18 +361,21 @@ We did some experiments to make the network deeper by specifying different hidde
 \label{tab:multihidden}
 \end{center}
 \end{table}
+Training deep architectures takes longer than training shallow architectures. However, training deep architectures for less number of iterations can give comparable results to shallow architectures trained with more number of iterations.
 
 
 \subsection{Cut Off Point}
-Instead of using fixed cutoff 0.5 for decided if a response indicated whether the window is person or not, we tried to treat this cutoff as a hyper parameter and tune it on the dev set.
+Observing that our data is not well-balanced, we think it makes sense to play around with the cutoff value of final response of logistic regression. In general, the recall of PERSON category is not so good given that NON-PERSON training instances outnumbers PERSON training instances.
+Intuitively, we can lower the cutoff value so that the classifier will recall more PERSON instances.
+Instead of using the fixed $0.5$ to determine whether a word is a person name or not, we tried to treat this cutoff as a hyperparameter and tune it on the dev set.
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[scale=0.2]{f1.png}
-\caption{F1 v.s. cutoff value}
+\caption{F1 score v.s. cutoff value}
 \label{fig:cutoff}
 \end{center}
 \end{figure}
-We vary the cutoff value from 0 to 1 with step size 0.05 and find out the best cut off value is just around 0.45 to 0.5.
+In Figure \ref{fig:cutoff}, we vary the cutoff point from 0 to 1 with step size 0.05 and find out the best cut off value is just around 0.45 to 0.5.
 
 
 \subsection{Mini-batch Gradient Descent}
