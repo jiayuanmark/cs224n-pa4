@@ -286,31 +286,34 @@ After training, the larger PERSON cluster tends to be more compact than before a
 
 \subsection{Error Analysis}
 
-\textbf{False Positive} We observe that the situations where a NON-PERSON word is recognized as a person name can be categorized as follows.
+\textbf{False Positive} We observe that the situations where a NON-PERSON word is recognized as a person name can be categorized as follows. The number in the parenthesis is the response score of trained neural network.
 \begin{itemize}
 \item Proper Noun:
 \begin{verbatim}
-Place: Russia, Moscow, England, Texas, Chicago, China ...
+Place: Russia(0.9), Moscow(0.894), England(0.947), Texas(0.944),
+Chicago(0.941), China(0.967) ...
 \end{verbatim}
 \begin{verbatim}
-Date: Wednesday, Tuesday, September, Thursday...
+Date: Wednesday(0.953), Tuesday(0.996), September(0.897), Saturday(0.835)...
 \end{verbatim}
 \begin{verbatim}
-Others: Honda, Mercedes-Benz, Reuters, Eurodollars, T-bonds, KDP, KeyCorp ...
+Others: Honda(0.982), Mercedes-Benz(0.929), Reuters(0.841), Eurodollars(0.788),
+Al(0.981), KeyCorp(0.769) ...
 \end{verbatim}
 \begin{verbatim}
-Numbers: 6-0-40-1, 9.5-0-44-1, 42 ...
+Numbers: 6-0-40-1(0.941), 9.5-0-44-1(0.97), 42(0.92) ...
 \end{verbatim}
 \item Pronoun, Determinant or Preposition appear with Name
 \begin{verbatim}
-I, he, they, One, Some, A, An, The, St, At ...
+I(0.939), he(0.813), they(0.818), One(0.781), Some(0.643), A(0.726),
+The(0.818), St(0.709), At(0.973) ...
 \end{verbatim}
 \item Other
 \begin{verbatim}
-Cardinal, Federal, Court, Commerce ...
+Cardinal(0.879), Federal(0.767), Court(0.558), Commerce(0.674) ...
 \end{verbatim}
 \end{itemize}
-For those special nouns such as brand names or place names, they serve a very similar purpose as a personal name in a sentence. We also notice some of these words are having a very high response score. Unless with adequate domain knowledge of them, it is even hard for a real human to tell if they are a person name or not. As a person name always appears with some determinant or proposition words, those words are being misclassified as a person word even in some situations they are not appeared with a name. 
+For those special nouns such as brands or places, they serve a very similar purpose as a PERSON word in a sentence. We also notice some of these words are having a very high response score. It illustrates that unless with adequate domain knowledge of them, it is even hard for a real human to tell if they are a person name or not. As a PERSON name always appears with some determinant or proposition phrases, those phrases have a higher change to be misclassified as PERSON even in some NON-PERSON context. 
 
 \vspace{0.1cm}
 
@@ -322,16 +325,16 @@ Generally speaking, we observe that the words that have been misclassified as pe
 \begin{itemize}
 \item Symbol or Proposition
 \begin{verbatim}
-", (, ), of
+'"'(0), '('(0), ')'(0), of(0)
 \end{verbatim}
 \item Names
 \begin{verbatim}
-Clinton, Mark, Van, Albert, Dole, ...
+Clinton(0.001), Mark(0.297), Van(0.015), Albert(0.004), Dole(0.009), ...
 \end{verbatim}
 
-Due to those symbols are more often appear with some non person name, they are not recognized as person names.
+Due to those symbols are more often appear together with NON-PERSON words, they are not recognized as person names.
 
-There are various reason for these names are not being recognized. Some names do not appear in the training set. Some names may serve other purposes in a sentence, e.g. mark may be a verb in many cases.
+There are various reason for actual PERSON names are not being recognized. Some names do not appear in the training set. Some names may serve other purposes in a sentence, e.g. mark may be a verb in many cases.
 \end{itemize}
 
 
