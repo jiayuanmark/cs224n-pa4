@@ -238,8 +238,8 @@ public class WindowModel {
 				SimpleMatrix input = makeInputVector(Data.get(i));
 				SimpleMatrix response = batchFeedforward(input);
 				pw.println(FeatureFactory.getTestData().get(i).word + "\t" + response + "\t" + Label.get(i) + "\n");
-				pw.close();
 			}
+			pw.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
