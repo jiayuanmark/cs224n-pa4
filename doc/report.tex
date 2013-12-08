@@ -154,7 +154,7 @@ where $.*$ is the Matlab notation of element-wise multiplication, $(2:\textrm{en
 \vspace{0.1cm}
 
 Finally, we can define the gradient of our neural network as follows.
-\begin{equation}
+\begin{equation}\label{eq:grad}
 \begin{split}
 \frac{\partial J(\theta)}{\partial U} &
 = \delta^{(L+1)} (a^{(L)})^T \\
@@ -170,7 +170,7 @@ Notice that $\frac{\partial J(\theta)}{\partial W^{(l)}}$ is applied to the abso
 
 If we add regularization terms to our cost function, the gradient of $\frac{\partial J(\theta)}{\partial U}$ and  $\frac{\partial J(\theta)}{\partial W^{(l)}}$ should be updated as follows.
 
-\begin{equation*}
+\begin{equation}
 \begin{split}
 \frac{\partial J(\theta)}{\partial U} &
 = \delta^{(L+1)} (a^{(L)})^T + C 
@@ -190,7 +190,7 @@ If we add regularization terms to our cost function, the gradient of $\frac{\par
 \end{bmatrix}
 \qquad \textrm{for } l = 1, \dots L
 \end{split}
-\end{equation*}
+\end{equation}
 Because we don't want to penalize bias terms, we zero out the first column (absorbed bias term) of each weight matrix.
 
 \section{Network Analysis}
@@ -237,7 +237,7 @@ Based on our experiments, the window size ($C$) seems to be the most influential
 \label{fig:learning_curve}
 \end{center}
 \end{figure}
-We summarize some of our best results from these runs in Table \ref{tab:network}. We use the optimal parameter configurations to run our model only once on the test set,
+We summarize some of our best results from these runs in Table \ref{tab:network}. We use the optimal parameter configurations to run our model only once on the \textbf{test set},
 we obtain a F1 score of $0.692$ (Precision: 80.44\%, Recall: 60.77\%).
 \begin{table}[h]
 \begin{center}
@@ -385,17 +385,43 @@ We extend stochastic gradient descent to a mini-batch gradient update scheme to 
 
 
 \subsubsection{Partition}
-Since there are a lot more NON-PERSON words than PERSON words, we try to partition the data to batches of instances that contain both PERSON words and NON-PERSON words together for gradient descent.
+Since there are a lot more NON-PERSON words than PERSON words, we try to partition the data into batches of instances that contain both PERSON words and NON-PERSON words for mini-batch gradient descent.
 
 \subsubsection{Batch Gradient}
-The gradient under batch mode is not so different from the gradient in stochastic gradient descent
+The gradient under batch mode is not so different from the gradient in stochastic gradient descent. The batch gradient should be as follows.
+\begin{equation}\label{eq:batch_grad}
+\begin{split}
+\frac{\partial J(\theta)}{\partial U} &
+= \frac{1}{m} \sum_{i=1}^m \frac{\partial J_i(\theta)}{\partial U}
++ \frac{C}{m}
+\begin{bmatrix}
+0 & U_{12} & \dots & U_{1m} \\
+0 & U_{22} & \dots & U_{2m} \\
+\vdots & \vdots & \dots & \vdots  \\
+0 & U_{n2} & \dots & U_{nm} \\
+\end{bmatrix} \\
+\frac{\partial J(\theta)}{\partial W^{(l)}} &
+= \frac{1}{m} \sum_{i=1}^m \frac{\partial J_i(\theta)}{\partial W^{(l)}}
++ \frac{C}{m}
+\begin{bmatrix}
+0 & W_{12} & \dots & W_{1m} \\
+0 & W_{22} & \dots & W_{2m} \\
+\vdots & \vdots & \dots & \vdots  \\
+0 & W_{n2} & \dots & W_{nm} \\
+\end{bmatrix}
+\qquad \textrm{for } l = 1, \dots L \\
+\frac{\partial J(\theta)}{\partial L}
+&= \frac{1}{m} \sum_{i=1}^{m} \frac{\partial J_i(\theta)}{\partial L}
+\end{split}
+\end{equation}
+where $m$ is the batch size and $\frac{\partial J_i(\theta)}{\partial \cdot}$ is the corresponding gradient (defined in (\ref{eq:grad})) for each instance in the batch.
 
 
 \subsubsection{Result}
 As discussed with one of TAs during office hour, we conclude that the result of mini-batch gradient descent is not so good. There are two reasons to explain why:
 \begin{itemize}
-\item
-\item
+\item The imbalance between PERSON and NON-PERSON catergories. Inside each mini-batch, there are more NON-PERSON instances than PERSON ones, which makes batch gradient inaccurate.
+\item No good way to update $L$ parameter. In batch gradient descent, we input a batch of windows into the network, and all these windows contain different word vectors. However, in (\ref{eq:batch_grad}) we have only one gradient over $L$. If we use that gradient to update across all different word vectors in the batch, the discrimination power of our model between words is greatly undermined.
 \end{itemize}
 
 
