@@ -7,16 +7,15 @@ We reuse the CommandLineUtils.java in PA2 for simplify our parameter tuning proc
 
 We do read and parse following parameter:
 
--window:  window size for the model, default is set to 9.
+-window:  window size for the model, default is set to 13.
 
--layers:  hidden layers structure, default is set to 100,80, means two hidden layer neural network, the first one is 100 
-and the second one is 80.
+-layers:  hidden layers structure, default is set to 300, you can also set multi-level parameter, e.g.: 100, 80 this means two hidden layer neural network, the first one is 100 and the second one is 80.
 
 -alpha:   learning rate, default is set to 0.001.
 
 -regularize:  regularizing constanct, default is set to 0.0001.
 
--epoch:   number of iteration during the train, default it set to 20.
+-epoch:   number of iteration during the train, default it set to 10.
 
 -data:    folder contains necessary train, dev and test data.
 
