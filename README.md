@@ -33,5 +33,4 @@ A example command with our best settings: window size = 13, only one hidden laye
 
 
 cd $PROJECT
-
 java -Xmx2g -cp classes:extlib/ejml.jar cs224n.deep.NER -window 13 -layer 250 -epoch 10 -train train -test test -data $DATA
