@@ -229,7 +229,37 @@ We setup series of parameter setting to explore the parameters of the network.
 \caption{Network parameter exploration}
 \label{fig:exploration}
 \end{figure}
-Based on our experiments, the window size ($C$) seems to be the most influential parameter. We also observed that we seldom overfit our model throughout our exploration. The F1 score on the dev set stays between $0.75$ and $0.77$, it does not drop down even we increase our hidden layer size or the iterations.
+Based on our experiments, the window size ($C$) seems to be the most influential parameter. We also observed that we seldom overfit our model throughout our exploration. The F1 score on the dev set stays between $0.75$ and $0.77$, it does not drop down even we increase our hidden layer size or the iterations. We also plot learning curves in Figure \ref{fig:learning_curve} by evaluating the cost functions after doing every $3000$ stochastic gradient descent. From this plot, we can convince ourselves that there is no need to go beyond 10 epochs because the cost function has already converged.
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{curve.png}
+\caption{Learning curve obtained by evaluating cost functions every $3000$ SGD iterations}
+\label{fig:learning_curve}
+\end{center}
+\end{figure}
+We summarize some of our best results from these runs in Table \ref{tab:network}.
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multirow{2}{*}{Network Parameters} & 
+\multicolumn{3}{|c|}{PERSON (training/dev)}
+\\
+\hhline{~---}
+& Precision(\%) & Recall (\%) & F1 (\%) \\
+\hline
+$C$=11, $H$=300, $K$=10, $\alpha=0.001$ & 81.78/77.20 & 85.14/77.64 & 83.43/77.42
+\\ \hline
+$C$=13, $H$=300, $K$=5, $\alpha=0.001$ &
+85.13/83.35 & 76.60/70.09 & 80.64/76.14
+\\ \hline
+$C$=13, $H$=250, $K$=10, $\alpha=0.001$ & 87.66/81.21 & 83.43/74.79 & \textbf{85.49/77.86} \\
+\hline
+\end{tabular}
+\caption{F1 scores for experiments of single hidden layer architecture}
+\label{tab:network}
+\end{center}
+\end{table}
 
 
 \subsection{Word Vector Visualization}
@@ -307,29 +337,26 @@ There are various reason for these names are not being recognized. Some names do
 
 \section{Extra Credit and More Experiments}
 
-
-\subsection{Multiple Hidden Layer}
-We did some experiements to make the network deeper by specifying different hidden layer stucture while fixing the window size 13, iteration 20, learning rate 0.001 and regularization cost 0.0001. Following table \ref{tab:multihidden} display results:
+\subsection{Multiple Hidden Layers}
+We did some experiments to make the network deeper by specifying different hidden layer stuctures while fixing the window size ($C$) to be $13$, epoch of iterations ($K$) 5, learning rate ($\alpha$) 0.001 and regularization constant ($C$) 0.0001. Table \ref{tab:multihidden} summarizes results from these experiments.
 \begin{table}[h]
 \begin{center}
-\begin{tabular}{|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|}
 \hline
 \multirow{2}{*}{Hidden Layer Size} & 
-\multicolumn{3}{c|}{PERSON (training/dev)} & \multicolumn{3}{c|}{NON-PERSON (training/dev)} \\
-\hhline{~------}
-& Precision & Recall & F1 & Precision & Recall & F1 \\
+\multicolumn{3}{|c|}{PERSON (training/dev)}
+\\
+\hhline{~---}
+& Precision(\%) & Recall (\%) & F1 (\%) \\
 \hline
-100, 100 & 78.07/78.76 & 74.41/69.91 & 76.19/74.07 
-& 66.06/73.99 & 67.37/66.51 & 66.81/70.05 \\
-\hline
-150, 150 & 79.99/80.80 & 75.15/69.60 & 77.50/74.78 
-& 65.90/75.83 & 68.93/66.68 & 67.38/70.96 \\
-\hline
-200, 200 & 85.37/84.05 & 72.39/65.29 & 78.35/73.49
-& 80.72/85.20 & 64.69/62.62 & 71.82/72.19 \\
+100, 100 & 82.09/80.43 & 76.47/70.50 & 79.18/75.14
+\\ \hline
+150, 100 & 80.83/78.10  & 79.48/72.82 & 80.15/75.37
+\\ \hline
+100, 150 & 78.55/76.41 & 82.49/76.34 & \textbf{80.47/76.38} \\
 \hline
 \end{tabular}
-\caption{Scores for experiment different multiple hidden layers structure}
+\caption{F1 scores for experiments of multiple hidden layers architecture}
 \label{tab:multihidden}
 \end{center}
 \end{table}
