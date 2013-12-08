@@ -35,7 +35,7 @@ Because we are comfortable with Matlab style of operating with matrices and vect
 
 \vspace{0.1cm}
 
-We also implement several helper methods such as \texttt{sigmoid}, \texttt{tanh}, \texttt{tanhDerivative} to make our neural network code more modular, e.g. feedforward to be more readable.
+We also implement several helper methods such as \texttt{sigmoid}, \texttt{tanh}, \texttt{tanhDerivative} to make our neural network code more modular, e.g. feedforward/backward propagation more readable.
 
 \subsection{Multiple Layer Support}
 Since we decide to target Extra Credit at the very beginning, our design and implementation automatically support multiple ($\ge 1$) hidden layer neural networks (or deep architectures). In addition to the default constructor of \texttt{WindowModel} which takes in a single number as the size of one hidden layer, the sizes of multiple hidden layers can be passed in as an array of integers to another ``deep'' constructor of \texttt{WindowModel}. All our implementations of feed forward propagation, back propagation and gradient checking support multiple layer architectures.  
@@ -44,7 +44,7 @@ Since we decide to target Extra Credit at the very beginning, our design and imp
 
 \textbf{Feed Forward}: The implementation of feed forward function is relatively straightforward: doing iterative matrix multiplications and feeding the result to  nonlinear activation functions ($\tanh$ or sigmoid depends on which layer we are processing). We also implemented a regularized likelihood cost function to analyze the changes of cost function during training.
 We implemented these two functions in batch mode,
-which can take in a batch of inputs, not a single input.
+which can take in a batch of inputs, not only a single input.
 \begin{verbatim}
 Line 235: public SimpleMatrix batchFeedforward(SimpleMatrix windows)
 Line 251: public double costFunction(SimpleMatrix X, SimpleMatrix L)
@@ -96,7 +96,7 @@ Unless otherwise indicated, the report assumes the weight matrix $W^{(l)}$ of la
 \begin{split}
 W^{(l)} & =
 \begin{bmatrix}
-b^{(i)} & W^{(l)}_\textrm{ori}
+b^{(l)} & W^{(l)}_\textrm{ori}
 \end{bmatrix} \\
 U &=
 \begin{bmatrix}
@@ -135,11 +135,11 @@ z^{(L+1)} = U a^{(L)}
 a^{(L+1)} = g(z^{(L+1)})
 \end{split}
 \end{equation}
-where $f$ is the nonlinear $\tanh$ function and $g$ is the sigmoid function. Notice that the definition of $a$ and $z$ follow closelt the procedure of forward propagation. The final layer of activation $h_\theta(x) = a^{(L+1)}$ is the output of the entire neural network.
+where $f$ is the nonlinear $\tanh$ function and $g$ is the sigmoid function. Notice that the definition of $a$ and $z$ follow closely the procedure of feedforward propagation. The final layer of activation $h_\theta(x) = a^{(L+1)}$ is the output of the entire neural network.
 
 \vspace{0.1cm}
 
-Back propagation algorithm works by propagating errors $\delta^{(l)}$ progressively from the output layer to the input layer. Following back propagation, we give the iterative definition of $\delta^{(l)}$ as follows.
+Backpropagation works by propagating errors $\delta^{(l)}$ backward from the output layer to the input layer. Following backpropagation, we give the iterative definition of $\delta^{(l)}$ as follows.
 \begin{equation}
 \begin{split}
 \delta^{(L+1)} &= h_\theta(x) - y = a^{(L+1)} - y \\
@@ -199,7 +199,7 @@ Because we don't want to penalize bias terms, we zero out the first column (abso
 We setup series of parameter setting to explore the parameters of the network.
 \begin{itemize}
 \item Figure \ref{fig:window}: Fix learning rate as 0.001, regularization constant as 0.0001, one hidden layer of size 300 and run 10 iterations. Vary the window size from 3 to 15 with step size 2.
-\item Figure \ref{fig:hidden}: Fix learning rate as 0.001, regularization constant as 0.0001, window size 13 and run 10 iterations. Vary the single hidden layer size from 100 to 300 with step size 50.
+\item Figure \ref{fig:hidden}: Fix learning rate as 0.001, regularization constant as 0.0001, window size 13 and run 10 iterations. Vary the single hidden layer's size from 100 to 300 with step size 50.
 \item Figure \ref{fig:epoch}: Fix learning rate as 0.001, regularization constant as 0.0001, one hidden layer of size 300 and window size 13. Vary the iteration from 5 to 20 with step size 5.
 \item Figure \ref{fig:alpha}: Fix window size as 13, regularization constant as 0.0001, one hidden layer of size 300 and run 10 iterations. Vary the learning rate from 0.0005 to 0.002 with step size 0.0005.
 \end{itemize}
@@ -229,7 +229,7 @@ We setup series of parameter setting to explore the parameters of the network.
 \caption{Network parameter exploration}
 \label{fig:exploration}
 \end{figure}
-Based on our experiments, the window size ($C$) seems to be the most influential parameter. We also observed that we seldom overfit our model throughout our exploration. The F1 score on the dev set stays between $0.75$ and $0.77$, it does not drop down even we increase our hidden layer size or the iterations. We also plot learning curves in Figure \ref{fig:learning_curve} by evaluating the cost functions after doing every $3000$ stochastic gradient descent. From this plot, we can convince ourselves that there is no need to go beyond 10 epochs because the cost function has already converged.
+Based on our experiments, the window size ($C$) seems to be the most influential parameter. We also observed that we seldom overfit our model throughout our exploration. The F1 score on the dev set stays between $0.75$ and $0.77$, it does not drop down even we increase our hidden layer size or the iterations. We also plot learning curves in Figure \ref{fig:learning_curve} by evaluating the cost functions after doing every $3000$ stochastic gradient descent updates. From this plot, we can convince ourselves that there is no need to go beyond 10 epochs because the cost function has already converged.
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=0.5\textwidth]{curve.png}
@@ -417,7 +417,7 @@ The gradient under batch mode is not so different from the gradient in stochasti
 where $m$ is the batch size and $\frac{\partial J_i(\theta)}{\partial \cdot}$ is the corresponding gradient (defined in (\ref{eq:grad})) for each instance in the batch.
 
 
-\subsubsection{Result}
+\subsubsection{Discussion}
 As discussed with one of TAs during office hour, we conclude that the result of mini-batch gradient descent is not so good. There are two reasons to explain why:
 \begin{itemize}
 \item The imbalance between PERSON and NON-PERSON catergories. Inside each mini-batch, there are more NON-PERSON instances than PERSON ones, which makes batch gradient inaccurate.
