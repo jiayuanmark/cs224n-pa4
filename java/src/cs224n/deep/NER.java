@@ -9,14 +9,14 @@ public class NER {
 		
 		// Default parameters
 		Map<String, String> options = new HashMap<String, String>();
-		options.put("-window", "9");
-		options.put("-layers", "100,80");
+		options.put("-window", "13");
+		options.put("-layers", "300");
 		options.put("-data", "../data/");
 		options.put("-train", "train2");
 		options.put("-test", "dev2");
 		options.put("-alpha", "0.001");
 		options.put("-regularize", "0.0001");
-		options.put("-epoch", "20");
+		options.put("-epoch", "10");
 
 		// Command-line options supersede defaults
 		options.putAll(CommandLineUtils.simpleCommandLineParser(args));
