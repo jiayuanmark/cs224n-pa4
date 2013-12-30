@@ -3,9 +3,9 @@ cs224n-pa4
 
 Deep learning for NER
 
-We reuse the CommandLineUtils.java in PA2 for simplify our parameter tuning process.
+We reuse the CommandLineUtils.java in PA2 to simplify parameter tuning process.
 
-We do read and parse following parameter:
+Here are the command line options we support:
 
 -window:  window size for the model, default is set to 13.
 
